@@ -1,0 +1,10 @@
+.env
+backend/vendor/
+backend/node_modules/
+backend/.env
+frontend/admin/node_modules/
+frontend/admin/dist/
+frontend/site/node_modules/
+frontend/site/dist/
+websocket/node_modules/
+.DS_Store

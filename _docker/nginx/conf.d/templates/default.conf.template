@@ -1,0 +1,21 @@
+server {
+    listen ${SITE_PORT};
+    server_name ${SITE_DOMAIN};
+
+    root /var/www/frontend/site/dist;
+    index index.html;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+    add_header Referrer-Policy "strict-origin-when-cross-origin";
+
+    server_tokens off;
+
+    location ~ /\. {
+        deny all;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

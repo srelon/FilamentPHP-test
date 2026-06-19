@@ -1,0 +1,79 @@
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: filament_nginx
+    ports:
+      - "${SITE_PORT}:${SITE_PORT}"
+      - "${ADMIN_PORT}:${ADMIN_PORT}"
+      - "${API_PORT}:${API_PORT}"
+    environment:
+      - SITE_DOMAIN=${SITE_DOMAIN}
+      - SITE_PORT=${SITE_PORT}
+      - ADMIN_DOMAIN=${ADMIN_DOMAIN}
+      - ADMIN_PORT=${ADMIN_PORT}
+      - API_DOMAIN=${API_DOMAIN}
+      - API_PORT=${API_PORT}
+    volumes:
+      - ./:/var/www
+      - ./_docker/nginx/conf.d/templates:/etc/nginx/templates
+    depends_on:
+      - app
+
+  app:
+    build:
+      context: .
+      dockerfile: ./_docker/app/Dockerfile
+    container_name: filament_app
+    user: "1000:1000"
+    entrypoint: /var/www/_docker/app/entrypoint.sh
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - db
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: ./_docker/app/Dockerfile
+    container_name: filament_scheduler
+    user: "1000:1000"
+    entrypoint: /var/www/_docker/app/scheduler-entrypoint.sh
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - app
+      - db
+
+  websocket:
+    image: node:20-alpine
+    container_name: filament_websocket
+    working_dir: /var/www/websocket
+    command: sh -c "npm install && npm start"
+    ports:
+      - "6001:6001"
+    volumes:
+      - ./websocket:/var/www/websocket
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: filament_redis
+    ports:
+      - "6379:6379"
+
+  db:
+    image: mysql:8.0
+    container_name: filament_db
+    ports:
+      - "8101:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - db_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+volumes:
+  db_data:
