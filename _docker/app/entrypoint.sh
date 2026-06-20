@@ -18,11 +18,6 @@ php artisan migrate --force --no-interaction
 echo "=== Linking storage ==="
 php artisan storage:link --force
 
-echo "=== Building frontend admin ==="
-cd /var/www/frontend/admin
-npm install
-npm run build
-
 echo "=== Building frontend site ==="
 cd /var/www/frontend/site
 npm install

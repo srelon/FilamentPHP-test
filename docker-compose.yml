@@ -4,13 +4,10 @@ services:
     container_name: filament_nginx
     ports:
       - "${SITE_PORT}:${SITE_PORT}"
-      - "${ADMIN_PORT}:${ADMIN_PORT}"
       - "${API_PORT}:${API_PORT}"
     environment:
       - SITE_DOMAIN=${SITE_DOMAIN}
       - SITE_PORT=${SITE_PORT}
-      - ADMIN_DOMAIN=${ADMIN_DOMAIN}
-      - ADMIN_PORT=${ADMIN_PORT}
       - API_DOMAIN=${API_DOMAIN}
       - API_PORT=${API_PORT}
     volumes:
@@ -25,7 +22,7 @@ services:
       dockerfile: ./_docker/app/Dockerfile
     container_name: filament_app
     user: "1000:1000"
-    entrypoint: /var/www/_docker/app/entrypoint.sh
+    entrypoint: ["sh", "/var/www/_docker/app/entrypoint.sh"]
     volumes:
       - ./:/var/www
     depends_on:
@@ -37,7 +34,7 @@ services:
       dockerfile: ./_docker/app/Dockerfile
     container_name: filament_scheduler
     user: "1000:1000"
-    entrypoint: /var/www/_docker/app/scheduler-entrypoint.sh
+    entrypoint: ["sh", "/var/www/_docker/app/scheduler-entrypoint.sh"]
     restart: unless-stopped
     volumes:
       - ./:/var/www

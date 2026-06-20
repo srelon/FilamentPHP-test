@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
       libwebp-dev \
       libjpeg62-turbo-dev \
       libfreetype6-dev \
+      libicu-dev \
       zip unzip \
       git \
       curl && \
@@ -15,7 +16,7 @@ RUN apt-get update && apt-get install -y \
           --with-freetype \
           --with-jpeg \
           --with-webp && \
-      docker-php-ext-install pdo_mysql bcmath gd zip && \
+      docker-php-ext-install pdo_mysql bcmath gd zip intl && \
       apt-get clean && \
       rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

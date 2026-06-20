@@ -1,28 +1,19 @@
-PROFILES = --profile admin --profile site
-
 up:
 	docker compose up -d
 	@echo ""
-	@echo "  API:    http://127.0.0.1:8000"
-	@echo "  Admin:  http://127.0.0.1:8881"
-	@echo "  Site:   http://127.0.0.1:8880"
+	@echo "  API + Admin:  http://127.0.0.1:8000"
+	@echo "  Admin panel:  http://127.0.0.1:8000/admin"
+	@echo "  Site:         http://127.0.0.1:8880"
 	@echo ""
-	@echo "Waiting for app to start..."
 
 down:
-	docker compose $(PROFILES) down
+	docker compose --profile site down
 
 scheduler-logs:
-	docker logs -f dashboard_scheduler
+	docker logs -f filament_scheduler
 
 scheduler-restart:
 	docker compose restart scheduler
-
-admin:
-	docker compose --profile admin up -d
-	@echo ""
-	@echo "  Admin dev:  http://127.0.0.1:5200"
-	@echo ""
 
 site:
 	docker compose --profile site up -d
