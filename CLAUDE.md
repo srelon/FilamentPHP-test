@@ -80,6 +80,68 @@ app/Filament/Resources/
 - Form `->disabled(!static::hasAccess('edit'))` makes fields read-only for view-only users
 - Never use `abort(403)` inside `beforeSave()` — use `Notification::make()->danger()->send()` + `$this->halt()` to show a toast instead of an error modal
 
+## Frontend (Vue 3 — `frontend/site/`)
+
+### Structure
+
+```
+src/
+  assets/scss/        ← global styles only
+    _variables.scss   ← design tokens ($color-primary, $color-accent, $color-dark, etc.)
+    _reset.scss       ← Google Fonts import, base reset
+    _helpers.scss     ← .container, .section, .section__title, .dots
+    main.scss         ← @import (NOT @use — @use scopes variables per file)
+  components/
+    layout/           ← AppHeader, AppFooter, Layout
+    ui/base/          ← BaseButton, BaseInput, BaseTabs, BaseSlider
+    ui/shop/          ← all page-section components (PageHero, ProductCard, etc.)
+  views/Pages/        ← Home.vue (assembles components only, no UI logic)
+  stores/shop.ts      ← Pinia: cart_count
+  routes/router.ts    ← Vue Router history mode
+public/images/        ← static images served at /images/*.png
+```
+
+### SCSS rules
+
+- Vite `additionalData` auto-injects `@use "@/assets/scss/variables" as *` into every component
+- **Never redeclare `$color-*` variables inside component `<style>`** — they come from global injection
+- `main.scss` uses `@import` (not `@use`) so that `_reset.scss` and `_helpers.scss` can access variables
+- All component styles: `<style lang="scss" scoped>` with BEM naming
+
+### Component rules
+
+- All reusable components in `src/components/ui/` — never tie components to a specific page
+- `ui/base/` — generic (BaseButton, BaseInput, BaseTabs, BaseSlider)
+- `ui/shop/` — shop-specific but still reusable (ProductCard, ProductSlider, PageHero, etc.)
+- Views (`views/`) only assemble components — no inline styles, no UI logic
+- Static images referenced in JS data → `public/images/` (Vite can't resolve dynamic `src/assets` paths)
+
+### BaseSlider
+
+Single slider component used by PageHero and ProductSlider. Never duplicate slider logic.
+
+```ts
+// Props
+count: number          // total slides/pages
+dot_style: 'rect' | 'diamond' | 'circle'
+auto_play_ms: number   // 0 = disabled; PageHero uses 30000
+model_value?: number   // optional v-model for parent to track active index
+
+// Slot
+#default="{ active }"  // scoped slot, active = current index
+```
+
+Handles: drag/swipe (threshold 30px), auto-play, dot clicks, v-model sync.
+
+### Key design decisions
+
+- **PageHero** — real slider (not static dots), `dot_style="diamond"`, `auto_play_ms=30000`
+- **ProductSlider Featured** — `dot_style="rect"` (rectangles, pink)
+- **ProductSlider Top Categories** — `dot_style="circle"` (circles)
+- **DiscountItem** — one product full-width per tab, NOT a product grid
+- **ProductCard `category` variant** — circular image; hover shows purple overlay + "View Collection"
+- **ProductCard `default` variant** — hover shows right-sliding action icons (heart/cart/eye)
+
 ## Environment
 
 Root `.env` controls Docker (ports, MySQL credentials). Backend has its own `backend/.env` for Laravel (DB_HOST=`db`, REDIS_HOST=`redis`).

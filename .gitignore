@@ -1,3 +1,6 @@
+# HTML source dumps
+html/
+
 # OS
 .DS_Store
 Thumbs.db

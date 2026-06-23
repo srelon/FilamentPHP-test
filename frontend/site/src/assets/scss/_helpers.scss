@@ -1,0 +1,29 @@
+.container {
+    max-width: $container-max;
+    margin: 0 auto;
+    padding: 0 $container-pad;
+    width: 100%;
+}
+
+.section {
+    padding: 80px 0;
+}
+
+.section__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+}
+
+.section__title {
+    font-size: clamp(22px, 2vw, 30px);
+    font-weight: 700;
+    color: $color-dark;
+}
+
+.arrow-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
