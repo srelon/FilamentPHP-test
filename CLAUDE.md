@@ -135,12 +135,22 @@ Handles: drag/swipe (threshold 30px), auto-play, dot clicks, v-model sync.
 
 ### Key design decisions
 
-- **PageHero** — real slider (not static dots), `dot_style="diamond"`, `auto_play_ms=30000`
-- **ProductSlider Featured** — `dot_style="rect"` (rectangles, pink)
-- **ProductSlider Top Categories** — `dot_style="circle"` (circles)
-- **DiscountItem** — one product full-width per tab, NOT a product grid
-- **ProductCard `category` variant** — circular image; hover shows purple overlay + "View Collection"
-- **ProductCard `default` variant** — hover shows right-sliding action icons (heart/cart/eye)
+**Book store (current project):**
+- **HomeHero** — `hero__top` (grid 1fr 1fr: H1 left, desc right) + `hero__bottom` (grid 2fr 1fr 1fr, min-height 500px); image cards with gradient overlay + newsletter block in mid column
+- **AppHeader** — book SVG logo + "BookStore" text; Categories mega-menu is a separate element LEFT of Home nav link, controlled by `cats_open` ref + mouseenter/mouseleave on wrapper
+- **CategoryStrip** — CSS carousel (transform translateX), shows 8 items, auto-advances every 10s; reset without jump uses double `requestAnimationFrame` to skip transition for one frame
+- **ProductCard** — extracted reusable component; hover slides action icons in from right (`translateX(60px) → 0`); `aspect-ratio: 2/3` on figure
+- **BestAuthorSection** — award badges are 72px circles with `border: 2px solid $color-primary` and text inside — NO SVG icons
+- **BestsellersSection** — title and description configurable via props with defaults
+
+**SVG fill in scoped styles** — CSS `fill` on `<svg>` does not reliably cascade to `<path>` in Vue scoped CSS. Always target child elements directly:
+```scss
+&__icon {
+    path, circle { fill: $color-primary; }
+}
+```
+
+**Card overlays** — always use `position: absolute; inset: 0` on the overlay, never `position: relative; height: 100%` — the latter collapses when the parent gets its height from flex.
 
 ## Environment
 

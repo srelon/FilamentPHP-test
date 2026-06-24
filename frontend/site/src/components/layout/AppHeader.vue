@@ -1,37 +1,8 @@
 <template>
     <header class="header">
-        <div class="header__top">
-            <div class="container header__top-inner">
-                <nav class="header__top-nav">
-                    <a href="#">My account</a>
-                    <a href="#">Wishlist</a>
-                    <a href="#">Locations</a>
-                    <a href="#">Order Tracking</a>
-                </nav>
-                <div class="header__top-socials">
-                    <a href="#" aria-label="Facebook">
-                        <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true">
-                            <path d="M20,10.1c0-5.5-4.5-10-10-10S0,4.5,0,10.1c0,5,3.7,9.1,8.4,9.9v-7H5.9v-2.9h2.5V7.9C8.4,5.4,9.9,4,12.2,4c1.1,0,2.2,0.2,2.2,0.2v2.5h-1.3c-1.2,0-1.6,0.8-1.6,1.6v1.9h2.8L13.9,13h-2.3v7C16.3,19.2,20,15.1,20,10.1z"/>
-                        </svg>
-                    </a>
-                    <a href="#" aria-label="X (Twitter)">
-                        <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true">
-                            <path d="M2.9 0C1.3 0 0 1.3 0 2.9v14.3C0 18.7 1.3 20 2.9 20h14.3c1.6 0 2.9-1.3 2.9-2.9V2.9C20 1.3 18.7 0 17.1 0H2.9zm13.2 3.8L11.5 9l5.5 7.2h-4.3l-3.3-4.4-3.8 4.4H3.4l5-5.7-5.3-6.7h4.4l3 4 3.5-4h2.1zM14.4 15 6.8 5H5.6l7.7 10h1.1z"/>
-                        </svg>
-                    </a>
-                    <a href="#" aria-label="Instagram">
-                        <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true">
-                            <circle cx="10" cy="10" r="3.3"/>
-                            <path d="M14.2,0H5.8C2.6,0,0,2.6,0,5.8v8.3C0,17.4,2.6,20,5.8,20h8.3c3.2,0,5.8-2.6,5.8-5.8V5.8C20,2.6,17.4,0,14.2,0zM10,15c-2.8,0-5-2.2-5-5s2.2-5,5-5s5,2.2,5,5S12.8,15,10,15z M15.8,5C15.4,5,15,4.6,15,4.2s0.4-0.8,0.8-0.8s0.8,0.4,0.8,0.8S16.3,5,15.8,5z"/>
-                        </svg>
-                    </a>
-                </div>
-            </div>
-        </div>
-
         <div class="header__main">
             <div class="container header__main-inner">
-                <a href="/" class="header__logo" aria-label="Book Store">
+                <router-link to="/" class="header__logo" aria-label="Book Store">
                     <svg class="header__logo-icon" viewBox="0 0 34 28" fill="none" aria-hidden="true">
                         <path d="M17 5L17 23" stroke="#ff6310" stroke-width="2" stroke-linecap="round"/>
                         <path d="M17 5L4 7.5L4 25L17 23Z" fill="#ff6310" fill-opacity="0.12" stroke="#ff6310" stroke-width="1.5" stroke-linejoin="round"/>
@@ -42,22 +13,13 @@
                         <line x1="20" y1="15.4" x2="27" y2="16" stroke="#ff6310" stroke-width="1.2" stroke-linecap="round" opacity="0.65"/>
                     </svg>
                     <span class="header__logo-text"><strong>Book</strong>Store</span>
-                </a>
+                </router-link>
 
                 <div class="header__search">
                     <input type="search" placeholder="Search books" aria-label="Search books">
                     <select aria-label="Search in category">
                         <option value="">Select Category</option>
-                        <option>Art &amp; Design</option>
-                        <option>Adventure</option>
-                        <option>Business</option>
-                        <option>Cooking</option>
-                        <option>Fantasy</option>
-                        <option>History</option>
-                        <option>Novels</option>
-                        <option>Romance</option>
-                        <option>Science</option>
-                        <option>Self-help</option>
+                        <option v-for="cat in search_categories" :key="cat" :value="cat">{{ cat }}</option>
                     </select>
                     <button type="submit" aria-label="Search">
                         <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true">
@@ -67,26 +29,17 @@
                 </div>
 
                 <div class="header__actions">
-                    <a href="#" class="header__action" aria-label="My Account">
+                    <a
+                        v-for="action in actions"
+                        :key="action.label"
+                        href="#"
+                        class="header__action"
+                        :aria-label="action.label"
+                    >
                         <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true">
-                            <path d="M10.5,9h-6c-2.1,0-3.8,1.7-3.8,3.8v1.5c0,0.4,0.3,0.8,0.8,0.8s0.8-0.3,0.8-0.8v-1.5c0-1.2,1-2.2,2.2-2.2h6c1.2,0,2.2,1,2.2,2.2v1.5c0,0.4,0.3,0.8,0.8,0.8s0.8-0.3,0.8-0.8v-1.5C14.2,10.7,12.6,9,10.5,9zM7.5,7C9.4,7,11,5.4,11,3.5S9.4,0,7.5,0S4,1.6,4,3.5S5.6,7,7.5,7zM7.5,1.5c1.1,0,2,0.9,2,2s-0.9,2-2,2s-2-0.9-2-2S6.4,1.5,7.5,1.5z"/>
+                            <path :d="action.icon" />
                         </svg>
                     </a>
-                    <a href="#" class="header__action" aria-label="Wishlist">
-                        <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true">
-                            <path d="M7.5,13.9l-0.4-0.3c-0.2-0.2-4.6-3.5-5.8-4.8C0.4,7.7-0.1,6.4,0,5.1c0.1-1.2,0.7-2.2,1.6-3c0.9-0.8,2.3-1,3.6-0.8C6.1,1.5,6.9,2,7.5,2.6c0.6-0.6,1.4-1.1,2.4-1.3c1.3-0.2,2.6,0,3.5,0.8l0,0c0.9,0.7,1.5,1.8,1.6,3c0.1,1.3-0.3,2.6-1.3,3.7c-1.2,1.4-5.6,4.7-5.7,4.8L7.5,13.9z"/>
-                        </svg>
-                    </a>
-                    <a href="#" class="header__action" aria-label="Cart">
-                        <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true">
-                            <path d="M14.1,1.6C14,0.7,13.3,0,12.4,0H2.7C1.7,0,1,0.7,0.9,1.6L0.1,13.1c0,0.5,0.1,1,0.5,1.3C0.9,14.8,1.3,15,1.8,15h11.4c0.5,0,0.9-0.2,1.3-0.6c0.3-0.4,0.5-0.8,0.5-1.3L14.1,1.6z"/>
-                        </svg>
-                    </a>
-                </div>
-
-                <div class="header__contact">
-                    <span class="header__contact-label">24/7 Support Center</span>
-                    <a href="tel:578-393-4937" class="header__contact-phone">578-393-4937</a>
                 </div>
             </div>
         </div>
@@ -108,10 +61,10 @@
                     <div class="header__mega" :class="{ 'header__mega--open': cats_open }">
                         <div class="header__mega-inner">
                             <div class="header__mega-cats">
-                                <a
+                                <router-link
                                     v-for="cat in categories"
                                     :key="cat.name"
-                                    href="/shop"
+                                    :to="{ path: '/products', query: { category: cat.name } }"
                                     class="header__mega-item"
                                 >
                                     <div class="header__mega-icon">
@@ -121,7 +74,7 @@
                                         <span class="header__mega-name">{{ cat.name }}</span>
                                         <span class="header__mega-count">{{ cat.count }} books</span>
                                     </div>
-                                </a>
+                                </router-link>
                             </div>
 
                             <div class="header__mega-promo">
@@ -140,13 +93,25 @@
                 </div>
 
                 <nav class="header__nav">
-                    <a href="/" class="header__nav-link header__nav-link--active">Home</a>
-                    <a href="/shop" class="header__nav-link">Shop</a>
-                    <a href="/authors" class="header__nav-link">Authors</a>
-                    <a href="/about-us" class="header__nav-link">About Us</a>
-                    <a href="/news" class="header__nav-link">News</a>
-                    <a href="/contact-us" class="header__nav-link">Contact Us</a>
+                    <router-link
+                        v-for="link in nav_links"
+                        :key="link.to"
+                        :to="link.to"
+                        class="header__nav-link"
+                        :active-class="link.exact ? '' : 'header__nav-link--active'"
+                        :exact-active-class="link.exact ? 'header__nav-link--active' : ''"
+                    >{{ link.label }}</router-link>
                 </nav>
+
+                <div class="header__contact">
+                    <svg viewBox="0 0 15 15" class="header__contact-icon" aria-hidden="true">
+                        <path d="M10.628 10.628a5 5 0 1 1-6.257-6.257 5 5 0 0 1 6.257 6.257m.707.707A6 6 0 0 1 4.92 4.92a6 6 0 0 1 6.415 6.415M13.5 14.207l-2.854-2.854.707-.707L14.207 13.5z"/>
+                    </svg>
+                    <div>
+                        <span class="header__contact-label">24/7 Support Center</span>
+                        <a href="tel:578-393-4937" class="header__contact-phone">578-393-4937</a>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -156,6 +121,67 @@
 import { ref } from 'vue'
 
 const cats_open = ref(false)
+
+const nav_links = [
+    {
+        label: 'Home',
+        to: '/',
+        exact: true,
+    },
+    {
+        label: 'Products',
+        to: '/products',
+        exact: false,
+    },
+    {
+        label: 'Authors',
+        to: '/authors',
+        exact: false,
+    },
+    {
+        label: 'About Us',
+        to: '/about-us',
+        exact: false,
+    },
+    {
+        label: 'News',
+        to: '/news',
+        exact: false,
+    },
+    {
+        label: 'Contact Us',
+        to: '/contact-us',
+        exact: false,
+    },
+]
+
+const search_categories = [
+    'Art & Design',
+    'Adventure',
+    'Business',
+    'Cooking',
+    'Fantasy',
+    'History',
+    'Novels',
+    'Romance',
+    'Science',
+    'Self-help',
+]
+
+const actions = [
+    {
+        label: 'My Account',
+        icon: 'M10.5,9h-6c-2.1,0-3.8,1.7-3.8,3.8v1.5c0,0.4,0.3,0.8,0.8,0.8s0.8-0.3,0.8-0.8v-1.5c0-1.2,1-2.2,2.2-2.2h6c1.2,0,2.2,1,2.2,2.2v1.5c0,0.4,0.3,0.8,0.8,0.8s0.8-0.3,0.8-0.8v-1.5C14.2,10.7,12.6,9,10.5,9zM7.5,7C9.4,7,11,5.4,11,3.5S9.4,0,7.5,0S4,1.6,4,3.5S5.6,7,7.5,7zM7.5,1.5c1.1,0,2,0.9,2,2s-0.9,2-2,2s-2-0.9-2-2S6.4,1.5,7.5,1.5z',
+    },
+    {
+        label: 'Wishlist',
+        icon: 'M7.5,13.9l-0.4-0.3c-0.2-0.2-4.6-3.5-5.8-4.8C0.4,7.7-0.1,6.4,0,5.1c0.1-1.2,0.7-2.2,1.6-3c0.9-0.8,2.3-1,3.6-0.8C6.1,1.5,6.9,2,7.5,2.6c0.6-0.6,1.4-1.1,2.4-1.3c1.3-0.2,2.6,0,3.5,0.8l0,0c0.9,0.7,1.5,1.8,1.6,3c0.1,1.3-0.3,2.6-1.3,3.7c-1.2,1.4-5.6,4.7-5.7,4.8L7.5,13.9z',
+    },
+    {
+        label: 'Cart',
+        icon: 'M14.1,1.6C14,0.7,13.3,0,12.4,0H2.7C1.7,0,1,0.7,0.9,1.6L0.1,13.1c0,0.5,0.1,1,0.5,1.3C0.9,14.8,1.3,15,1.8,15h11.4c0.5,0,0.9-0.2,1.3-0.6c0.3-0.4,0.5-0.8,0.5-1.3L14.1,1.6z',
+    },
+]
 
 const categories = [
     {
@@ -374,23 +400,41 @@ const categories = [
     }
 
     &__contact {
+        display: flex;
+        align-items: center;
+        gap: 10px;
         flex-shrink: 0;
-        text-align: right;
-        font-size: 12px;
+        padding: 8px 0;
+        margin-left: auto;
+    }
+
+    &__contact-icon {
+        width: 28px;
+        height: 28px;
+        flex-shrink: 0;
+
+        path {
+            fill: $color-primary;
+        }
     }
 
     &__contact-label {
         display: block;
+        font-size: 11px;
         color: $color-gray;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.06em;
+        line-height: 1;
+        margin-bottom: 3px;
     }
 
     &__contact-phone {
         display: block;
         font-weight: 700;
-        font-size: 15px;
+        font-size: 14px;
         color: $color-dark;
+        line-height: 1;
+        transition: color 0.2s;
 
         &:hover {
             color: $color-primary;

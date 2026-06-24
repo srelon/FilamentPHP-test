@@ -4,7 +4,7 @@
             <div class="container footer__grid">
 
                 <div class="footer__col footer__col--brand">
-                    <a href="/" class="footer__logo" aria-label="Book Store">
+                    <router-link to="/" class="footer__logo" aria-label="Book Store">
                         <svg class="footer__logo-icon" viewBox="0 0 34 28" fill="none" aria-hidden="true">
                             <path d="M17 5L17 23" stroke="#ff6310" stroke-width="2" stroke-linecap="round"/>
                             <path d="M17 5L4 7.5L4 25L17 23Z" fill="#ff6310" fill-opacity="0.18" stroke="#ff6310" stroke-width="1.5" stroke-linejoin="round"/>
@@ -15,7 +15,7 @@
                             <line x1="20" y1="15.4" x2="27" y2="16" stroke="#ff6310" stroke-width="1.2" stroke-linecap="round" opacity="0.65"/>
                         </svg>
                         <span class="footer__logo-text"><strong>Book</strong>Store</span>
-                    </a>
+                    </router-link>
 
                     <p class="footer__desc">Your trusted destination for books across every genre. Browse thousands of titles and discover your next great read.</p>
 
@@ -36,7 +36,7 @@
                             <svg viewBox="0 0 15 15" aria-hidden="true">
                                 <path d="M13.5 2h-12A1.5 1.5 0 0 0 0 3.5v8A1.5 1.5 0 0 0 1.5 13h12a1.5 1.5 0 0 0 1.5-1.5v-8A1.5 1.5 0 0 0 13.5 2m0 1 .09.007L7.5 7.572 1.41 3.007A.5.5 0 0 1 1.5 3zM1 11.5v-7.8l6.22 4.573a.5.5 0 0 0 .56 0L14 3.7v7.8a.5.5 0 0 1-.5.5h-12a.5.5 0 0 1-.5-.5"/>
                             </svg>
-                            <a href="mailto:hello@bookstore.com">hello@bookstore.com</a>
+                            <a href="mailto:hello@example.com">hello@example.com</a>
                         </li>
                         <li>
                             <svg viewBox="0 0 15 15" aria-hidden="true">
@@ -74,11 +74,11 @@
                 <div class="footer__col">
                     <h4 class="footer__title">Explore</h4>
                     <ul class="footer__links">
-                        <li><a href="/about-us">About Us</a></li>
-                        <li><a href="/authors">Authors</a></li>
-                        <li><a href="/shop">Shop</a></li>
-                        <li><a href="/news">News</a></li>
-                        <li><a href="/contact-us">Contact Us</a></li>
+                        <li><router-link to="/about-us">About Us</router-link></li>
+                        <li><router-link to="/authors">Authors</router-link></li>
+                        <li><router-link to="/products">Products</router-link></li>
+                        <li><router-link to="/news">News</router-link></li>
+                        <li><router-link to="/contact-us">Contact Us</router-link></li>
                     </ul>
                 </div>
 

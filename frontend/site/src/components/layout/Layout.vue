@@ -2,7 +2,7 @@
     <div class="layout">
         <AppHeader />
         <main class="layout__main">
-            <slot />
+            <router-view />
         </main>
         <AppFooter />
     </div>

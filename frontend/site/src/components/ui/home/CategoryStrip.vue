@@ -9,18 +9,14 @@
                         transition: animated ? 'transform 0.6s ease' : 'none',
                     }"
                 >
-                    <a
+                    <CategoryItem
                         v-for="cat in categories"
                         :key="cat.name"
-                        href="#"
-                        class="cats__item"
-                    >
-                        <div class="cats__icon">
-                            <img :src="cat.icon" :alt="cat.name" width="40" height="40">
-                        </div>
-                        <h5 class="cats__name">{{ cat.name }}</h5>
-                        <span class="cats__count">{{ cat.count }} books</span>
-                    </a>
+                        :name="cat.name"
+                        :icon="cat.icon"
+                        :count="cat.count"
+                        :style="{ width: item_width }"
+                    />
                 </div>
             </div>
         </div>
@@ -29,6 +25,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import CategoryItem from '@/components/ui/home/CategoryItem.vue'
 
 const VISIBLE = 8
 
@@ -137,62 +134,6 @@ onUnmounted(() => {
     &__track {
         display: flex;
         width: v-bind(track_width);
-    }
-
-    &__item {
-        width: v-bind(item_width);
-        flex-shrink: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        padding: 16px 20px;
-        border-right: 1px solid $color-light;
-        transition: color 0.2s;
-        color: $color-dark;
-
-        &:last-child {
-            border-right: none;
-        }
-
-        &:hover {
-            color: $color-primary;
-
-            .cats__icon {
-                background: rgba($color-primary, 0.08);
-            }
-        }
-    }
-
-    &__icon {
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        background: $color-lightest;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 10px;
-        transition: background 0.2s;
-
-        img {
-            width: 28px;
-            height: 28px;
-            object-fit: contain;
-        }
-    }
-
-    &__name {
-        font-size: 13px;
-        font-weight: 600;
-        color: inherit;
-        margin-bottom: 4px;
-        white-space: nowrap;
-    }
-
-    &__count {
-        font-size: 12px;
-        color: $color-gray;
     }
 }
 </style>

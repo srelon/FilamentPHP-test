@@ -9,18 +9,18 @@
             <div class="hero__bottom">
                 <div class="hero__col hero__col--left">
                     <div class="hero__buttons">
-                        <a href="/shop" class="hero__btn hero__btn--primary">
+                        <router-link to="/products" class="hero__btn hero__btn--primary">
                             Shop Now
                             <svg viewBox="0 0 15 15" aria-hidden="true">
                                 <path d="M1 15a1 1 0 0 1-.707-1.707L11.586 2H1.52a1 1 0 0 1 0-2h12.483q.202.002.379.075a1 1 0 0 1 .542.543 1 1 0 0 1 .076.38V13.48a1 1 0 1 1-2 0V3.414L1.707 14.707A1 1 0 0 1 1 15"/>
                             </svg>
-                        </a>
-                        <a href="/shop" class="hero__btn hero__btn--outline">
+                        </router-link>
+                        <router-link to="/products" class="hero__btn hero__btn--outline">
                             View Categories
                             <svg viewBox="0 0 15 15" aria-hidden="true">
                                 <path d="M1 15a1 1 0 0 1-.707-1.707L11.586 2H1.52a1 1 0 0 1 0-2h12.483q.202.002.379.075a1 1 0 0 1 .542.543 1 1 0 0 1 .076.38V13.48a1 1 0 1 1-2 0V3.414L1.707 14.707A1 1 0 0 1 1 15"/>
                             </svg>
-                        </a>
+                        </router-link>
                     </div>
 
                     <div class="hero__card hero__card--stretch">

@@ -1,20 +1,17 @@
 <template>
-    <Layout>
-        <HomeHero />
-        <CategoryStrip />
-        <BestsellersSection />
-        <BestAuthorSection />
-        <BestRatedSection />
-        <BlogSection />
-    </Layout>
+    <HeroSection />
+    <CategoryStrip />
+    <BestsellersSection />
+    <BestAuthorSection />
+    <BestRatedSection />
+    <BlogSection />
 </template>
 
 <script setup lang="ts">
-import Layout from '@/components/layout/Layout.vue'
-import HomeHero from '@/components/ui/shop/HomeHero.vue'
-import CategoryStrip from '@/components/ui/shop/CategoryStrip.vue'
-import BestsellersSection from '@/components/ui/shop/BestsellersSection.vue'
-import BestAuthorSection from '@/components/ui/shop/BestAuthorSection.vue'
-import BestRatedSection from '@/components/ui/shop/BestRatedSection.vue'
-import BlogSection from '@/components/ui/shop/BlogSection.vue'
+import HeroSection from '@/components/ui/home/HeroSection.vue'
+import CategoryStrip from '@/components/ui/home/CategoryStrip.vue'
+import BestsellersSection from '@/components/ui/home/BestsellersSection.vue'
+import BestAuthorSection from '@/components/ui/home/BestAuthorSection.vue'
+import BestRatedSection from '@/components/ui/home/BestRatedSection.vue'
+import BlogSection from '@/components/ui/blog/BlogSection.vue'
 </script>

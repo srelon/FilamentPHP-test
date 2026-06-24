@@ -22,6 +22,27 @@
     color: $color-dark;
 }
 
+.btn-group {
+    display: flex;
+    align-items: stretch;
+
+    > *:not(:last-child) {
+        border-right: none;
+    }
+
+    > *:first-child {
+        border-radius: 6px 0 0 6px;
+    }
+
+    > *:last-child {
+        border-radius: 0 6px 6px 0;
+    }
+
+    > *:not(:first-child):not(:last-child) {
+        border-radius: 0;
+    }
+}
+
 .arrow-icon {
     width: 14px;
     height: 14px;

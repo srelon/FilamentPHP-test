@@ -6,23 +6,24 @@
                     <h2 class="section__title">{{ title }}</h2>
                     <p class="bestsellers__desc">{{ description }}</p>
                 </div>
-                <a href="/shop" class="bestsellers__view-all">
-                    View All
+                <router-link :to="view_all_href" class="bestsellers__view-all">
+                    {{ view_all_label }}
                     <svg viewBox="0 0 15 15" aria-hidden="true">
                         <path d="M1 15a1 1 0 0 1-.707-1.707L11.586 2H1.52a1 1 0 0 1 0-2h12.483q.202.002.379.075a1 1 0 0 1 .542.543 1 1 0 0 1 .076.38V13.48a1 1 0 1 1-2 0V3.414L1.707 14.707A1 1 0 0 1 1 15"/>
                     </svg>
-                </a>
+                </router-link>
             </div>
 
             <div class="bestsellers__grid">
                 <ProductCard
                     v-for="product in products"
-                    :key="product.title"
+                    :key="product.slug"
                     :title="product.title"
                     :author="product.author"
                     :category="product.category"
                     :price="product.price"
                     :image="product.image"
+                    :href="`/product/${product.slug}`"
                 />
             </div>
         </div>
@@ -30,45 +31,57 @@
 </template>
 
 <script setup lang="ts">
-import ProductCard from '@/components/ui/shop/ProductCard.vue'
+import ProductCard from '@/components/ui/product/ProductCard.vue'
 
 interface Props {
     title?: string
     description?: string
+    view_all_label?: string
+    view_all_href?: string
 }
 
 withDefaults(defineProps<Props>(), {
     title: 'Bestsellers of the week',
     description: 'Quam elementum pulvinar etiam non quam. Faucibus nisl tincidunt eget nullam non nisi elementum sagittis vitae et leo duis ut diam quam.',
+    view_all_label: 'View All',
+    view_all_href: '/products',
 })
 
 const products = [
     {
+        slug: 'anxiety-unmasked',
         title: 'Anxiety Unmasked',
         author: 'Theodore Langley',
         category: 'Self-help',
         price: '18.00',
+        rating: 4,
         image: '/images/book-image-19.webp',
     },
     {
+        slug: 'astral-journey',
         title: 'Astral Journey',
         author: 'Nathaniel Parker',
         category: 'Fantasy',
         price: '28.00',
+        rating: 5,
         image: '/images/book-image-24.webp',
     },
     {
+        slug: 'autumn-journey',
         title: 'Autumn Journey',
         author: 'Samuel Wright',
         category: 'Adventure',
         price: '17.00',
+        rating: 3,
         image: '/images/book-image-29.webp',
     },
     {
+        slug: 'best-italian-cuisines',
         title: 'Best Italian Cuisines',
         author: 'Nathaniel Parker',
         category: 'Cooking',
         price: '25.00',
+        rating: 4,
         image: '/images/book-image-7.webp',
     },
 ]
