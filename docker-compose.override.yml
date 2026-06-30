@@ -2,12 +2,12 @@ services:
   frontend-site:
     image: node:20-alpine
     container_name: dashboard_frontend_site
-    working_dir: /var/www/frontend/site
+    working_dir: /var/www/frontend
     command: sh -c "npm install && npm run dev"
     ports:
       - "5173:5173"
     volumes:
-      - ./frontend/site:/var/www/frontend/site
+      - ./frontend:/var/www/frontend
     profiles:
       - site
 

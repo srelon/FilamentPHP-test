@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Monorepo with three independent services:
 
 - `backend/` — Laravel 13 + FilamentPHP (API + Admin panel at `/admin`)
-- `frontend/site/` — Vue 3 + TypeScript + Vite (public site)
+- `frontend/` — Vue 3 + TypeScript + Vite (public site)
 - `websocket/` — Node.js WebSocket server (ws + ioredis + pino)
 
 All services run in Docker. The entire stack is mounted as volumes — no image rebuilds needed for code changes, only for dependency changes.
@@ -30,7 +30,7 @@ make site
 
 **Container names:** `filament_app`, `filament_nginx`, `filament_db`, `filament_redis`, `filament_scheduler`, `filament_websocket`
 
-**Ports:** API + Filament Admin `8000`, public site `8880`, Vue dev `5173`, phpMyAdmin `8080`, WebSocket `6001`, MySQL `8101`
+**Ports:** все на одном порту `8000` (API `/api`, Admin `/admin`, сайт `/`), Vue dev `5173`, phpMyAdmin `8080`, WebSocket `6001`, MySQL `8101`
 
 ## Running commands in the backend container
 
@@ -80,7 +80,7 @@ app/Filament/Resources/
 - Form `->disabled(!static::hasAccess('edit'))` makes fields read-only for view-only users
 - Never use `abort(403)` inside `beforeSave()` — use `Notification::make()->danger()->send()` + `$this->halt()` to show a toast instead of an error modal
 
-## Frontend (Vue 3 — `frontend/site/`)
+## Frontend (Vue 3 — `frontend/`)
 
 ### Structure
 

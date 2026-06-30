@@ -19,7 +19,7 @@ echo "=== Linking storage ==="
 php artisan storage:link --force
 
 echo "=== Building frontend site ==="
-cd /var/www/frontend/site
+cd /var/www/frontend
 npm install
 npm run build
 

@@ -1,22 +1,48 @@
+include .env
+export
+
+DOCKER_COMPOSE := $(shell docker compose version > /dev/null 2>&1 && echo "docker compose" || echo "docker-compose")
+
+PROFILES = --profile site --profile phpmyadmin
+
 up:
-	docker compose up -d
+	$(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.override.yml up -d
 	@echo ""
-	@echo "  API + Admin:  http://127.0.0.1:8000"
-	@echo "  Admin panel:  http://127.0.0.1:8000/admin"
-	@echo "  Site:         http://127.0.0.1:8880"
+	@echo "  Site:         http://127.0.0.1:$(SITE_PORT)"
+	@echo "  Admin:        http://127.0.0.1:$(SITE_PORT)/admin/"
+	@echo "  API:          http://127.0.0.1:$(SITE_PORT)/api/"
 	@echo ""
+	@echo "Waiting for app to start..."
 
 down:
-	docker compose --profile site down
+	$(DOCKER_COMPOSE) $(PROFILES) down --remove-orphans
+
+logs:
+	$(DOCKER_COMPOSE) logs -f
+
+logs-nginx:
+	$(DOCKER_COMPOSE) logs -f nginx
+
+logs-app:
+	$(DOCKER_COMPOSE) logs -f app
+
+logs-db:
+	$(DOCKER_COMPOSE) logs -f db
 
 scheduler-logs:
 	docker logs -f filament_scheduler
 
 scheduler-restart:
-	docker compose restart scheduler
+	$(DOCKER_COMPOSE) restart scheduler
+
+pma:
+	$(DOCKER_COMPOSE) --profile phpmyadmin up -d
+	@echo ""
+	@echo "  phpMyAdmin:  http://127.0.0.1:8080"
+	@echo ""
 
 site:
-	docker compose --profile site up -d
+	$(DOCKER_COMPOSE) --profile site up -d
 	@echo ""
 	@echo "  Site dev:  http://127.0.0.1:5173"
 	@echo ""
