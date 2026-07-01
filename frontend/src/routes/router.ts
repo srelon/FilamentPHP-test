@@ -7,10 +7,12 @@ import AboutPage from '@/views/Pages/Static/AboutPage.vue'
 import ContactPage from '@/views/Pages/Static/ContactPage.vue'
 import ProductList from '@/views/Pages/Products/ProductList.vue'
 import ProductPage from '@/views/Pages/Products/ProductPage.vue'
+import CartPage from '@/views/Pages/Cart/CartPage.vue'
 import AuthorList from '@/views/Pages/Authors/AuthorList.vue'
 import NewsList from '@/views/Pages/News/NewsList.vue'
 import NewsPage from '@/views/Pages/News/NewsPage.vue'
 
+import { useShopStore } from '@/stores/shop'
 import middlewarePipeline from './middlewarePipeline'
 
 const APP_NAME = 'BookStore'
@@ -55,6 +57,16 @@ const routes: RouteRecordRaw[] = [
                 path: 'authors',
                 component: AuthorList,
                 meta: { title: 'Authors' },
+            },
+            {
+                name: 'cart',
+                path: 'cart',
+                component: CartPage,
+                meta: { title: 'Checkout' },
+                beforeEnter: () => {
+                    const store = useShopStore()
+                    if (store.cart_items.length === 0) return '/'
+                },
             },
             {
                 path: 'news',

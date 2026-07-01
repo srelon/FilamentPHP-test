@@ -56,3 +56,7 @@ PHP publishes → Redis subscribes → Node.js broadcasts → Browser
 - `tags.updated`           — all connected clients
 - `article.{id}`           — article viewers
 - `notification.{user_id}` — specific authenticated user
+
+```bash
+# Enter container shell
+docker exec -it filament_app bash

@@ -36,12 +36,17 @@
                     <p class="product__desc">{{ product.short_desc }}</p>
 
                     <div class="product__actions">
-                        <div class="product__qty">
+                        <div v-if="!is_in_cart" class="product__qty">
                             <button @click="qty > 1 && qty--">−</button>
                             <span>{{ qty }}</span>
                             <button @click="qty++">+</button>
                         </div>
-                        <BaseButton class="product__add-to-cart">Add to Cart</BaseButton>
+                        <BaseButton v-if="!is_in_cart" class="product__add-to-cart" @click="handle_add_to_cart">
+                            Add to Cart
+                        </BaseButton>
+                        <BaseButton v-else class="product__add-to-cart" @click="store.open_popup()">
+                            View Cart
+                        </BaseButton>
                     </div>
 
                     <div class="product__meta">
@@ -113,7 +118,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useShopStore } from '@/stores/shop'
+
+const store = useShopStore()
 
 interface Props {
     quick?: boolean
@@ -131,6 +139,24 @@ import StarRating from '@/components/ui/base/StarRating.vue'
 
 const qty = ref(1)
 const lightbox_open = ref(false)
+
+const product_id = computed(() => {
+    const slug = href.split('/').filter(Boolean).pop()
+    return slug ?? 'anxiety-unmasked'
+})
+
+const is_in_cart = computed(() => store.in_cart(product_id.value))
+
+function handle_add_to_cart() {
+    store.add_to_cart({
+        id: product_id.value,
+        title: product.title,
+        author: 'Theodore Langley',
+        price: parseFloat(product.price),
+        image: product.images[0],
+        href,
+    }, qty.value)
+}
 const active_tab = ref('Description')
 const review_rating = ref(0)
 const review_text = ref('')
@@ -172,6 +198,7 @@ function open_lightbox(img: string) {
 
 const related = [
     {
+        id: 'astral-journey',
         title: 'Astral Journey',
         author: 'Nathaniel Parker',
         category: 'Fantasy',
@@ -180,6 +207,7 @@ const related = [
         href: '/product/astral-journey',
     },
     {
+        id: 'autumn-journey',
         title: 'Autumn Journey',
         author: 'Samuel Wright',
         category: 'Adventure',
@@ -188,6 +216,7 @@ const related = [
         href: '/product/autumn-journey',
     },
     {
+        id: 'journey-through-time',
         title: 'Journey Through Time',
         author: 'Amelia Brooks',
         category: 'History',
@@ -196,6 +225,7 @@ const related = [
         href: '/product/journey-through-time',
     },
     {
+        id: 'mind-wellness',
         title: 'Mind & Wellness',
         author: 'Oliver Hartman',
         category: 'Self-help',
@@ -207,6 +237,8 @@ const related = [
 </script>
 
 <style lang="scss" scoped>
+@use "sass:color";
+
 .product {
     &--quick {
         padding: 32px 0 24px;
@@ -532,7 +564,7 @@ const related = [
         transition: background 0.2s;
 
         &:hover {
-            background: darken($color-primary, 8%);
+            background: color.adjust($color-primary, $lightness: -8%);
         }
     }
 

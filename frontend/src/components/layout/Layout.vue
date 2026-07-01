@@ -5,12 +5,14 @@
             <router-view />
         </main>
         <AppFooter />
+        <CartPopup />
     </div>
 </template>
 
 <script setup lang="ts">
 import AppHeader from './AppHeader.vue'
 import AppFooter from './AppFooter.vue'
+import CartPopup from '@/components/ui/cart/CartPopup.vue'
 </script>
 
 <style lang="scss" scoped>

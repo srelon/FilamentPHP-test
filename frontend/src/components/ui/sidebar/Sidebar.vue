@@ -83,6 +83,8 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <style lang="scss" scoped>
+@use "sass:color";
+
 .sidebar {
     width: 280px;
     flex-shrink: 0;
@@ -147,7 +149,7 @@ withDefaults(defineProps<Props>(), {
             transition: background 0.2s;
 
             &:hover {
-                background: darken($color-primary, 8%);
+                background: color.adjust($color-primary, $lightness: -8%);
             }
         }
     }

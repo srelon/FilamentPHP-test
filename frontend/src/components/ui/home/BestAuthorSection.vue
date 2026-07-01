@@ -66,6 +66,8 @@
 </template>
 
 <style lang="scss" scoped>
+@use "sass:color";
+
 .best-author {
     background: $color-dark;
     overflow: hidden;
@@ -153,7 +155,7 @@
         }
 
         &:hover {
-            background: darken($color-primary, 8%);
+            background: color.adjust($color-primary, $lightness: -8%);
         }
     }
 

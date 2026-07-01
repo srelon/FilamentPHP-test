@@ -101,6 +101,8 @@
 </template>
 
 <style lang="scss" scoped>
+@use "sass:color";
+
 .hero {
     background: $color-lightest;
     padding: 50px 0;
@@ -169,7 +171,7 @@
             color: $color-white;
 
             &:hover {
-                background: darken($color-primary, 8%);
+                background: color.adjust($color-primary, $lightness: -8%);
             }
         }
 
@@ -335,7 +337,7 @@
             transition: background 0.2s;
 
             &:hover {
-                background: lighten($color-dark, 15%);
+                background: color.adjust($color-dark, $lightness: 15%);
             }
         }
     }

@@ -18,6 +18,7 @@
                 <ProductCard
                     v-for="product in products"
                     :key="product.slug"
+                    :id="product.slug"
                     :title="product.title"
                     :author="product.author"
                     :category="product.category"

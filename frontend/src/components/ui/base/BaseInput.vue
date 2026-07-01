@@ -3,41 +3,96 @@
         <label v-if="label" class="base-input__label">{{ label }}</label>
         <textarea
             v-if="type === 'textarea'"
-            v-model="value"
+            :value="display_value"
             :placeholder="placeholder"
             :rows="rows"
             class="base-input__field"
-            :class="{ 'base-input__field--error': errorMessage }"
+            :class="{ 'base-input__field--error': display_error }"
+            @input="on_input"
+            @blur="on_blur"
         ></textarea>
         <input
             v-else
-            v-model="value"
+            :value="display_value"
             :type="type"
             :placeholder="placeholder"
             class="base-input__field"
-            :class="{ 'base-input__field--error': errorMessage }"
+            :class="{ 'base-input__field--error': display_error }"
+            @input="on_input"
+            @blur="on_blur"
         >
-        <span v-if="errorMessage" class="base-input__error">{{ errorMessage }}</span>
+        <span v-if="display_error" class="base-input__error">{{ display_error }}</span>
     </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useField } from 'vee-validate'
 
 interface Props {
-    name: string
+    name?: string
+    modelValue?: string
     label?: string
     type?: string
     placeholder?: string
     rows?: number
+    error?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
     type: 'text',
     rows: 5,
+    name: '',
 })
 
-const { value, errorMessage } = useField<string>(() => props.name)
+const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
+
+const { value: field_value, errorMessage, meta: field_meta, handleBlur } = useField<string>(() => props.name)
+
+const display_value = computed(() => props.name ? field_value.value : (props.modelValue ?? ''))
+const display_error = computed(() => {
+    if (props.name) return field_meta.touched ? errorMessage.value : undefined
+    return props.error
+})
+
+function format_phone(raw: string): string {
+    const digits = raw.replace(/\D/g, '')
+    if (!digits) return ''
+
+    const pattern = [3, 3, 2, 2, 2, 2, 2]
+    const chunks: string[] = []
+    let i = 0
+
+    for (const len of pattern) {
+        if (i >= digits.length) break
+        chunks.push(digits.slice(i, i + len))
+        i += len
+    }
+
+    if (i < digits.length) chunks.push(digits.slice(i))
+
+    return chunks.join(' ')
+}
+
+function on_input(event: Event) {
+    const target = event.target as HTMLInputElement | HTMLTextAreaElement
+    let v = target.value
+
+    if (props.type === 'tel') {
+        v = format_phone(v)
+        ;(target as HTMLInputElement).value = v
+    }
+
+    if (props.name) {
+        field_value.value = v
+    } else {
+        emit('update:modelValue', v)
+    }
+}
+
+function on_blur(event: Event) {
+    if (props.name) handleBlur(event)
+}
 </script>
 
 <style lang="scss" scoped>
@@ -47,36 +102,15 @@ const { value, errorMessage } = useField<string>(() => props.name)
     gap: 6px;
 
     &__label {
-        font-size: 14px;
-        font-weight: 600;
-        color: $color-dark;
+        @include form-field-label;
     }
 
     &__field {
-        padding: 11px 14px;
-        border: 1.5px solid $color-light;
-        border-radius: 6px;
-        font-size: 14px;
-        font-family: $font-body;
-        color: $color-dark;
-        outline: none;
-        transition: border-color 0.2s;
+        @include form-field-base;
         width: 100%;
-
-        &:focus {
-            border-color: $color-primary;
-        }
 
         &::placeholder {
             color: $color-gray;
-        }
-
-        &--error {
-            border-color: #e53e3e;
-
-            &:focus {
-                border-color: #e53e3e;
-            }
         }
     }
 
@@ -85,8 +119,7 @@ const { value, errorMessage } = useField<string>(() => props.name)
     }
 
     &__error {
-        font-size: 12px;
-        color: #e53e3e;
+        @include form-field-error-text;
     }
 }
 </style>

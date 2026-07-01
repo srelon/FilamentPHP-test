@@ -139,7 +139,12 @@ const all_products = [
     },
 ]
 
-const current_products = computed(() => all_products.slice(0, per_page))
+const all_products_with_id = all_products.map(p => ({
+    ...p,
+    id: p.href.split('/').pop() ?? p.title,
+}))
+
+const current_products = computed(() => all_products_with_id.slice(0, per_page))
 
 function on_filter() {}
 </script>

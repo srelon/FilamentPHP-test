@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 interface Props {
-    variant?: 'primary' | 'outline'
+    variant?: 'primary' | 'outline' | 'text'
     type?: 'button' | 'submit' | 'reset'
     disabled?: boolean
 }
@@ -19,6 +19,8 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <style lang="scss" scoped>
+@use "sass:color";
+
 .base-btn {
     display: inline-flex;
     align-items: center;
@@ -38,7 +40,7 @@ withDefaults(defineProps<Props>(), {
         border: none;
 
         &:hover {
-            background: darken($color-primary, 8%);
+            background: color.adjust($color-primary, $lightness: -8%);
         }
     }
 
@@ -51,6 +53,18 @@ withDefaults(defineProps<Props>(), {
             background: $color-primary;
             color: $color-white;
             border-color: $color-primary;
+        }
+    }
+
+    &--text {
+        background: none;
+        border: none;
+        padding: 0;
+        color: $color-primary;
+        font-size: 13px;
+
+        &:hover {
+            color: color.adjust($color-primary, $lightness: -10%);
         }
     }
 

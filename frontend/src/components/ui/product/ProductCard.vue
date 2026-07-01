@@ -27,7 +27,16 @@
                         </svg>
                     </button>
                     <QuickView :href="href" />
-                    <BaseButton variant="outline" class="book-card__cart">Add to cart</BaseButton>
+                    <template v-if="is_in_cart">
+                        <button class="book-card__cart book-card__cart--in" @click="store.open_popup()">
+                            View Cart
+                        </button>
+                    </template>
+                    <template v-else>
+                        <BaseButton variant="outline" class="book-card__cart" @click="handle_add_to_cart">
+                            Add to cart
+                        </BaseButton>
+                    </template>
                 </div>
             </div>
         </div>
@@ -35,11 +44,14 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import QuickView from '@/components/ui/product/QuickView.vue'
 import BaseButton from '@/components/ui/base/BaseButton.vue'
+import { useShopStore } from '@/stores/shop'
 
 interface Props {
+    id: string
     title: string
     author: string
     category: string
@@ -53,8 +65,22 @@ const props = withDefaults(defineProps<Props>(), {
     href: '/product',
 })
 
+const store = useShopStore()
 const route = useRoute()
 const router = useRouter()
+
+const is_in_cart = computed(() => store.in_cart(props.id))
+
+function handle_add_to_cart() {
+    store.add_to_cart({
+        id: props.id,
+        title: props.title,
+        author: props.author,
+        price: parseFloat(props.price),
+        image: props.image,
+        href: props.href ?? '/product',
+    })
+}
 
 function go_to_category() {
     if (route.path === '/products') {
@@ -66,6 +92,8 @@ function go_to_category() {
 </script>
 
 <style lang="scss" scoped>
+@use "sass:color";
+
 .book-card {
     &__figure {
         border-radius: 8px;
@@ -189,6 +217,18 @@ function go_to_category() {
     &__cart {
         font-size: 13px;
         padding: 6px 14px;
+
+        &--in {
+            background: $color-primary;
+            color: $color-white;
+            border-color: $color-primary;
+            cursor: pointer;
+
+            &:hover {
+                background: color.adjust($color-primary, $lightness: -8%);
+                border-color: color.adjust($color-primary, $lightness: -8%);
+            }
+        }
     }
 }
 </style>

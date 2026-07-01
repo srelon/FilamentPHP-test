@@ -165,6 +165,8 @@ const perks = [
 </script>
 
 <style lang="scss" scoped>
+@use "sass:color";
+
 .about {
     &__intro {
         display: grid;
@@ -313,7 +315,7 @@ const perks = [
         transition: background 0.2s;
 
         &:hover {
-            background: darken($color-primary, 8%);
+            background: color.adjust($color-primary, $lightness: -8%);
         }
     }
 
@@ -359,7 +361,7 @@ const perks = [
             white-space: nowrap;
 
             &:hover {
-                background: darken($color-primary, 8%);
+                background: color.adjust($color-primary, $lightness: -8%);
             }
         }
     }

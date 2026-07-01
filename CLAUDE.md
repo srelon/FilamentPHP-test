@@ -34,8 +34,16 @@ make site
 
 ## Running commands in the backend container
 
+The container WORKDIR is `/var/www` — always `cd /var/www/backend` first.
+
 ```bash
+# One-off commands
+docker exec -it filament_app bash -c "cd /var/www/backend && php artisan migrate"
+docker exec -it filament_app bash -c "cd /var/www/backend && composer require vendor/package"
+
+# Interactive shell
 docker exec -it filament_app bash
+cd /var/www/backend
 
 # Common artisan commands
 php artisan migrate
@@ -87,25 +95,31 @@ app/Filament/Resources/
 ```
 src/
   assets/scss/        ← global styles only
-    _variables.scss   ← design tokens ($color-primary, $color-accent, $color-dark, etc.)
+    _variables.scss   ← design tokens ($color-primary, $color-accent, $color-dark, $color-danger, etc.)
+    _mixins.scss      ← shared mixins (form-field-label, form-field-base, form-field-error-text)
     _reset.scss       ← Google Fonts import, base reset
     _helpers.scss     ← .container, .section, .section__title, .dots
-    main.scss         ← @import (NOT @use — @use scopes variables per file)
+    main.scss         ← @forward variables, @use reset/helpers
   components/
     layout/           ← AppHeader, AppFooter, Layout
-    ui/base/          ← BaseButton, BaseInput, BaseTabs, BaseSlider
+    ui/base/          ← BaseButton, BaseInput, BaseSelect, BaseRadioGroup, BaseTabs, BaseSlider
     ui/shop/          ← all page-section components (PageHero, ProductCard, etc.)
+    ui/cart/          ← CheckoutStep, CartPopup (shared across cart/checkout views)
+  composables/        ← useCheckoutForm (localStorage-backed cart form state), useWizardStep (step draft/confirm pattern)
   views/Pages/        ← Home.vue (assembles components only, no UI logic)
+  views/Pages/Cart/   ← CartPage.vue (checkout wizard) + ContactStep/DeliveryStep/PaymentStep.vue
   stores/shop.ts      ← Pinia: cart_count
   routes/router.ts    ← Vue Router history mode
 public/images/        ← static images served at /images/*.png
+public/favicon.svg    ← square book-logo icon, matches AppHeader logo colors
 ```
 
 ### SCSS rules
 
-- Vite `additionalData` auto-injects `@use "@/assets/scss/variables" as *` into every component
+- Vite `additionalData` auto-injects `@use "@/assets/scss/variables" as *;` and `@use "@/assets/scss/mixins" as *;` into every component
 - **Never redeclare `$color-*` variables inside component `<style>`** — they come from global injection
-- `main.scss` uses `@import` (not `@use`) so that `_reset.scss` and `_helpers.scss` can access variables
+- Form-field components (`BaseInput`, `BaseSelect`) share label/field/error styling via `@include form-field-label`, `@include form-field-base`, `@include form-field-error-text` from `_mixins.scss` — don't re-declare padding/border/focus styles per component
+- `_reset.scss` and `_helpers.scss` each start with `@use 'variables' as *;` to access variables; `main.scss` pulls them together with `@forward 'variables'; @use 'reset'; @use 'helpers';`
 - All component styles: `<style lang="scss" scoped>` with BEM naming
 
 ### Component rules
@@ -151,6 +165,14 @@ Handles: drag/swipe (threshold 30px), auto-play, dot clicks, v-model sync.
 ```
 
 **Card overlays** — always use `position: absolute; inset: 0` on the overlay, never `position: relative; height: 100%` — the latter collapses when the parent gets its height from flex.
+
+**Checkout wizard (`views/Pages/Cart/CartPage.vue`)** — 3-step flow (Contact → Delivery → Payment) via `CheckoutStep.vue` wrapper (`step_number`, `active`, `done`, `#default`/`#summary` slots, emits `edit`).
+- `useCheckoutForm()` holds the three step data refs, persisted to `localStorage`.
+- Each step component takes `initial_data` prop, emits `change` (live draft, drives the sidebar `#summary` slot) and `complete` (fires only on explicit "Continue" click, advances `current_step` in `CartPage.vue`).
+- `ContactStep.vue` uses vee-validate (`useForm`/`useField`, matches `ContactForm.vue` pattern) — **not** part of `useWizardStep`.
+- `DeliveryStep.vue`/`PaymentStep.vue` use the `useWizardStep<T>(initial_data, emit, validator?)` composable instead (plain `reactive` draft + `is_valid` + `on_continue`) — do not hand-roll this pattern again, only these two non-vee-validate steps need it.
+- Radio-style method pickers (delivery method, payment method) → `ui/base/BaseRadioGroup.vue` (generic `<script setup generic="T extends string">` component) — never re-duplicate the label/input markup or `__method`/`__method--active` styles per step.
+- `BaseButton` has a third `variant="text"` (no background/border, small font, color-only hover) for inline actions like "Edit"/"Edit Items" — use it instead of ad-hoc `<button>` + custom SCSS.
 
 ## Environment
 
@@ -211,3 +233,14 @@ const page_title = ref('')
 **snake_case** for all variables, object keys, props, interface fields. camelCase/PascalCase only for functions, components, file names.
 
 **English only** — all code comments, docblocks, and inline notes must be in English.
+
+## Validation — ALWAYS use vee-validate + yup
+
+All form validation in the frontend must use **vee-validate** with **yup** schemas. Never write manual validation logic (custom `computed` flags like `field !== ''`, manual error refs, etc.).
+
+Pattern (matches `ContactForm.vue`):
+- `useForm({ validationSchema: object({...}) })` at the component or page level
+- Field components use `useField(() => props.name)` internally (like `BaseInput.vue`)
+- Schema built with `yup`: use `.min(1, 'message')` for required text fields — **never** `string().required()` alone, because yup v1 passes `''` (empty string) through `required()`. Only `min(1)` reliably catches empty string. For email: `.min(1, '...').email('...')`. For numbers/phones: `.min(N, '...')`.
+- Submit fires only when schema is valid (`handleSubmit` from `useForm`)
+- Validation messages in Russian

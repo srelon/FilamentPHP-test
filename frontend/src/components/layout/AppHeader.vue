@@ -34,11 +34,16 @@
                         :key="action.label"
                         href="#"
                         class="header__action"
+                        :class="{ 'header__action--cart': action.label === 'Cart' }"
                         :aria-label="action.label"
+                        @click.prevent="action.label === 'Cart' ? store.open_popup() : undefined"
                     >
                         <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true">
                             <path :d="action.icon" />
                         </svg>
+                        <span v-if="action.label === 'Cart' && store.cart_count > 0" class="header__cart-badge">
+                            {{ store.cart_count }}
+                        </span>
                     </a>
                 </div>
             </div>
@@ -119,8 +124,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useShopStore } from '@/stores/shop'
 
 const cats_open = ref(false)
+const store = useShopStore()
 
 const nav_links = [
     {
@@ -238,6 +245,8 @@ const categories = [
 </script>
 
 <style lang="scss" scoped>
+@use "sass:color";
+
 .header {
     position: sticky;
     top: 0;
@@ -374,7 +383,7 @@ const categories = [
             }
 
             &:hover {
-                background: darken($color-primary, 8%);
+                background: color.adjust($color-primary, $lightness: -8%);
             }
         }
     }
@@ -388,6 +397,7 @@ const categories = [
         color: $color-dark;
         display: flex;
         align-items: center;
+        position: relative;
         transition: color 0.2s;
 
         svg {
@@ -397,6 +407,24 @@ const categories = [
         &:hover {
             color: $color-primary;
         }
+    }
+
+    &__cart-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        min-width: 17px;
+        height: 17px;
+        padding: 0 4px;
+        background: $color-primary;
+        color: $color-white;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
     }
 
     &__contact {
