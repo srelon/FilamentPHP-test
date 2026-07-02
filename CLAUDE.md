@@ -88,6 +88,55 @@ app/Filament/Resources/
 - Form `->disabled(!static::hasAccess('edit'))` makes fields read-only for view-only users
 - Never use `abort(403)` inside `beforeSave()` — use `Notification::make()->danger()->send()` + `$this->halt()` to show a toast instead of an error modal
 
+## Shop domain (backend database)
+
+Full table/column/status reference: **`backend/docs/database.md`** — read it before writing migrations, models, or Filament resources for these tables. Migrations: `backend/database/migrations/2026_07_02_*`. Models: `backend/app/Models/*`.
+
+Facts that aren't obvious from the schema alone:
+
+- **Price/stock live in `product_stocks`, not `products`.** A product can have several stock rows (batches at different prices); `status` tracks which batch is active/queued/finished. `order_items.product_stock_id` pins an order line to the exact batch it was sold from.
+- **`orders.status` and `order_items.status` are independent** — one order can have some items delivered and others cancelled. Admin flow (not built yet): set `order_items.status` first, then `orders.status`, which back-fills any untouched items.
+- **`product_reviews`/`product_review_likes`/`product_review_reports`/`user_notifications` are ported 1:1 from another existing project** (its `comments`/`comment_likes`/`comment_reports`/`user_notifications` tables), with `article_id → product_id`, `comment_id → review_id`. Don't redesign this structure — the moderation/notification logic behind it already works there and will be ported later.
+- **`orders.public_id` and `orders.txid` are auto-generated** in `Order::booted()` (`static::creating`) — never set them manually.
+- **Status convention:** across every status enum in this domain, `4` means cancelled/deleted, never `2`/`3`. Keep new statuses consistent with this.
+- **Guest support differs by table.** Cart, checkout, orders all support guests (`user_id` nullable). `product_reviews` does **not** — reviews require authentication, no guest name/email fields.
+- **`User::notifications()` is taken by Laravel's `Notifiable` trait** — the shop notifications relation is `User::userNotifications()`.
+- **Several shop tables are prefixed `products_` for disambiguation, not their bare name** — `products_categories` (model `ProductsCategory`, vs. `news_categories`), `products_authors` (model `ProductsAuthor`), `products_favorites` (model `ProductsFavorite`). Don't reintroduce `categories`/`authors`/`favorites` as table or class names.
+- **Image columns (`icon`, `image`, `photo`) are JSON, not a path string** — cast to `array`, storing size/format variants. Applies to `products_categories`, `products_authors`, `product_images`, `news_posts`.
+- **SEO fields live in one shared `seo_meta` table**, not duplicated per content table — `Product::seo()`, `ProductsCategory::seo()`, `NewsPost::seo()` are `morphOne(SeoMeta::class, 'seo', 'type', 'record_id')`, with the morph map (`AppServiceProvider::boot()`) aliasing `type` to the target's table name instead of its class name.
+- **Customer auth is Sanctum SPA (cookie-based)**, guard `web` / provider `users` — separate from the `admins` guard used by the Filament panel. `SANCTUM_STATEFUL_DOMAINS` in `.env` must stay bare `host:port` (no scheme); `config/cors.php` derives its own scheme-prefixed origins from that same variable.
+- **`php artisan migrate:fresh --seed` gives a working demo catalog** — every shop table has a seeder in `database/seeders/`, sourced from the frontend's hardcoded mock data (not invented), with the referenced images copied into `storage/app/public/{products,products_categories,news}/`. See `backend/docs/database.md` § Seed data for the two placeholder exceptions (stock quantity, delivery branch hash).
+
+## Backend API conventions — ALWAYS follow these
+
+**Keep `backend/docs/database.md` current.** Any migration, model, or other change to the database (new table, new column, changed status meaning, dropped field) must update that doc in the same change — it's part of the change, not a follow-up task. Never let it drift out of sync with the actual schema.
+
+**Tests ship with the API code that needs them.** When adding or changing an API endpoint, create or update its Pest feature test in the same change — don't leave that for a later pass. If a request/response contract changes, update the existing test alongside it so it never goes stale.
+
+**Validation lives in Form Requests, never in controllers.** One request class per resource, shared between create and update instead of two near-duplicate classes — read the route's id param inside `rules()` to adjust rules that differ between the two (e.g. `Rule::unique(...)->ignore($id)` for edit vs. plain `unique` for create).
+
+```php
+class ProductRequest extends FormRequest
+{
+    public function rules(): array
+    {
+        $id = $this->route('id');
+
+        return [
+            'title' => ['required', 'string', 'max:255'],
+            'slug' => ['required', 'string', Rule::unique('products', 'slug')->ignore($id)],
+        ];
+    }
+}
+```
+
+**No business logic in controllers.** A controller method only resolves a Request, calls a Service (`app/Services/`) or another dedicated layer (e.g. an Action), and returns the response — nothing else. All business logic belongs in the service layer.
+
+**Response shape comes from `App\Traits\RespondTrait`** (already `use`d in the base `Controller`) — never build the JSON envelope by hand in a controller:
+- `$this->respondWithJson($content, $status = 200)` → `{data, status}`
+- `$this->respondWithError($message, $code = 400)` → `{status, errors}`
+- `$this->paginationMeta($paginated)` → `{current_page, last_page, total, prev_page_url, next_page_url}` (the last two are `'prev'`/`'next'`/`null` flags, not real URLs)
+
 ## Frontend (Vue 3 — `frontend/`)
 
 ### Structure
@@ -184,7 +233,7 @@ Redis pub/sub connects backend to websocket server. PHP publishes to Redis → `
 
 ## Code Style Rules — ALWAYS follow these
 
-**NO alignment spaces.** Single space before `=`, `=>`, `:` — never pad to align columns.
+**NO alignment spaces.** Single space before `=`, `=>`, `:` — never pad to align columns. This applies to code only (PHP/TS/Vue) — in Markdown docs, alignment/padding for readability (e.g. lining up `|` columns in a table) is fine, since it isn't code.
 
 ```php
 // WRONG
@@ -232,7 +281,9 @@ const page_title = ref('')
 
 **snake_case** for all variables, object keys, props, interface fields. camelCase/PascalCase only for functions, components, file names.
 
-**English only** — all code comments, docblocks, and inline notes must be in English.
+**English only** — all code comments, docblocks, and inline notes must be in English. This also applies to every documentation file in the repo (README, `docs/*.md`, CLAUDE.md itself) — nothing checked into the repo should be in a non-English language, regardless of what language is used to address Claude in conversation.
+
+**No explanatory/rationale comments in code, even for non-obvious decisions.** Context about *why* something was built a certain way belongs in `backend/docs/database.md` / `CLAUDE.md`, not in a `//` line next to the code — an inline comment almost always just duplicates what's already documented there. If a decision is worth flagging, say it in the chat reply so it can be routed to docs deliberately, not left as a stray comment.
 
 ## Validation — ALWAYS use vee-validate + yup
 

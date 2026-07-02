@@ -18,6 +18,7 @@ tmp/
 
 # Local caches (Docker volumes)
 .composer/
+.config/
 .npm/
 
 # Environment
