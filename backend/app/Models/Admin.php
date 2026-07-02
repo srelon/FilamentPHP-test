@@ -7,6 +7,7 @@ use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +43,11 @@ class Admin extends Authenticatable implements FilamentUser, HasAvatar
     public function role(): BelongsTo
     {
         return $this->belongsTo(AdminRole::class, 'role_id');
+    }
+
+    public function newsPosts(): HasMany
+    {
+        return $this->hasMany(NewsPost::class, 'author_id');
     }
 
     public function hasAccess(string $slug): bool

@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\NewsPost;
+use App\Models\Product;
+use App\Models\ProductsCategory;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Relation::enforceMorphMap([
+            'products' => Product::class,
+            'products_categories' => ProductsCategory::class,
+            'news_posts' => NewsPost::class,
+        ]);
     }
 }

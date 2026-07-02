@@ -18,6 +18,14 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AccessesSeeder::class,
             AdminSeeder::class,
+            ProductsCategorySeeder::class,
+            ProductsAuthorSeeder::class,
+            ProductSeeder::class,
+            NewsCategorySeeder::class,
+            NewsPostSeeder::class,
+            DeliveryServiceSeeder::class,
+            DeliveryBranchSeeder::class,
+            PaymentSeeder::class,
         ]);
 
         // User::factory(10)->create();
