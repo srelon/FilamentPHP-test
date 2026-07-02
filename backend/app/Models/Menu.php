@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CacheService;
 use Illuminate\Database\Eloquent\Model;
 use SolutionForest\FilamentTree\Concern\ModelTree;
 
@@ -15,7 +16,7 @@ class Menu extends Model
         'parent_id',
         'type',
         'params',
-        'sort',
+        'sort_order',
         'location',
     ];
 
@@ -25,5 +26,11 @@ class Menu extends Model
             'parent_id' => 'integer',
             'params' => 'array',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => CacheService::flushOnMenuWrite());
+        static::deleted(fn () => CacheService::flushOnMenuWrite());
     }
 }

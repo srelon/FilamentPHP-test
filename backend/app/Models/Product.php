@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CacheService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -58,7 +59,12 @@ class Product extends Model
 
     public function activeStock(): HasOne
     {
-        return $this->hasOne(ProductStock::class)->where('status', 1)->latest('sort');
+        return $this->hasOne(ProductStock::class)->where('status', 1)->latest('sort_order');
+    }
+
+    public function primaryImage(): HasOne
+    {
+        return $this->hasOne(ProductImage::class)->orderBy('sort_order');
     }
 
     public function seo(): MorphOne
@@ -84,5 +90,11 @@ class Product extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => CacheService::flushOnProductWrite());
+        static::deleted(fn () => CacheService::flushOnProductWrite());
     }
 }

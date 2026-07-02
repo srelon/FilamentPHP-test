@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CacheService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,7 +18,7 @@ class ProductStock extends Model
         'price',
         'before_price',
         'real_price',
-        'sort',
+        'sort_order',
         'status',
     ];
 
@@ -38,5 +39,11 @@ class ProductStock extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => CacheService::flushOnProductWrite());
+        static::deleted(fn () => CacheService::flushOnProductWrite());
     }
 }

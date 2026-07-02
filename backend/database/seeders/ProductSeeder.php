@@ -119,7 +119,7 @@ class ProductSeeder extends Seeder
                 [
                     'quantity' => self::PLACEHOLDER_QUANTITY,
                     'price' => $data['price'],
-                    'sort' => 1,
+                    'sort_order' => 1,
                 ],
             );
         }

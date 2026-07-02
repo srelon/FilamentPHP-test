@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CacheService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -50,5 +51,11 @@ class NewsPost extends Model
     public function reviews(): MorphMany
     {
         return $this->morphMany(Review::class, 'reviewable', 'type', 'record_id');
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => CacheService::flushOnNewsWrite());
+        static::deleted(fn () => CacheService::flushOnNewsWrite());
     }
 }

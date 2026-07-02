@@ -2,6 +2,8 @@
 
 Reference for the tables added on top of the initial RBAC scaffold (`users`, `admins`, `admin_roles`, `admin_accesses`). All shop-domain tables use `timestamps()` + `softDeletes()`.
 
+**Manual ordering always uses `sort_order`** (`unsignedInteger`, default `999`) — never `sort`, `order`, or `position`. Every table with a manual-order column uses this exact name (`products_categories`, `product_images`, `product_stocks`, `menus`), including `menus` where it's remapped from the `solution-forest/filament-tree` package's own `order` config key (see § Navigation).
+
 Migrations: `backend/database/migrations/2026_07_02_*`. Models: `backend/app/Models/*`.
 
 ## Status field reference
@@ -29,6 +31,7 @@ Project convention: **`4` is reserved for cancel/delete-type states** across enu
 | `news_posts.status`             | `0` inactive / `1` active                                                                                                                                                                                         |
 | `contact_messages.status`       | not explicitly defined — 0 new / 1 handled                                                                                                                                                                      |
 | `newsletter_subscribers.status` | `0` unsubscribed / `1` subscribed (default `1`)                                                                                                                                                                   |
+| `contact_info.status`           | not explicitly defined — 0 inactive / 1 active                                                                                                                                                                  |
 
 ## Catalog
 
@@ -44,7 +47,7 @@ Price and stock are **not here** — see `product_stocks`. For product cards/pag
 **Image columns are JSON, not a single path string** — `products_categories.icon`, `products_categories.image`, `products_authors.photo`, `product_images.image`, `news_posts.image` all store an object of size/format variants (e.g. `{"original": "...", "thumb": "..."}`) cast to `array` on the model, rather than one plain path. Exact variant keys aren't finalized yet — decide when the upload/image-processing service gets built.
 
 **product_stocks** — a batch/lot system for inventory, not a single column on the product:
-`product_id → products, quantity, price, before_price (nullable, pre-discount price), real_price (purchase/cost price), sort (default 999), status`.
+`product_id → products, quantity, price, before_price (nullable, pre-discount price), real_price (purchase/cost price), sort_order (default 999), status`.
 A product can have several rows at once: one `active` (currently on sale), others `queued` (next batch at a different price), old ones `fulfilled`/`cancelled`. `order_items` points at a specific row (`product_stock_id`), so price and stock are decremented against the exact batch, not the product in general.
 
 ## Reviews and notifications
@@ -99,7 +102,7 @@ Guest carts are **not stored in the DB** — client-side only (Pinia store + loc
 
 ## Navigation
 
-**menus** *(model `Menu`, no `status`, no `softDeletes` — unlike the rest of this doc's tables)* — `name, route (nullable), parent_id, type (link = external URL / route = a Vue Router route name from frontend/src/routes/router.ts, e.g. "products", "about" — not a path, and not a Laravel route), params (json, nullable — route params for dynamic segments, e.g. {"slug": "..."} for the "product"/"post" routes, only relevant when type=route), sort, location (header/footer)`.
+**menus** *(model `Menu`, no `status`, no `softDeletes` — unlike the rest of this doc's tables)* — `name, route (nullable), parent_id, type (link = external URL / route = a Vue Router route name from frontend/src/routes/router.ts, e.g. "products", "about" — not a path, and not a Laravel route), params (json, nullable — route params for dynamic segments, e.g. {"slug": "..."} for the "product"/"post" routes, only relevant when type=route), sort_order, location (header/footer)`.
 
 The frontend resolves a `type=route` item as `:to="{ name: menu.route, params: menu.params }"` (vue-router's named-route object form), not as a raw path string.
 
@@ -107,15 +110,19 @@ In the admin (`MenuTree::routeSlugModels()`), the `product`/`post` routes get a 
 
 `MenuSeeder` seeds the 6 top-level `header` items straight from `AppHeader.vue`'s `nav_links` (Home/Products/Authors/About Us/News/Contact Us) — the "Categories" mega-menu in the same header is driven by `products_categories`, not `menus`, so it isn't duplicated here. `footer` isn't seeded yet — its layout isn't finalized in the frontend.
 
-Powers a WordPress-style drag-and-drop menu editor at `/admin/menu-tree` (`App\Filament\Pages\MenuTree`, gated by the `menus` access key like every other resource), built on `solution-forest/filament-tree` rather than a hand-rolled tree — see `config/filament-tree.php` for the column-name mapping (`order → sort`, `title → name`, `parent → parent_id`).
+Powers a WordPress-style drag-and-drop menu editor at `/admin/menu-tree` (`App\Filament\Pages\MenuTree`, gated by the `menus` access key like every other resource), built on `solution-forest/filament-tree` rather than a hand-rolled tree — see `config/filament-tree.php` for the column-name mapping (`order → sort_order`, `title → name`, `parent → parent_id`).
 
 `parent_id` is **not** a nullable self-referencing FK like elsewhere in this schema — the package requires `-1` as the sentinel for a root/top-level item (`integer default(-1)`, no FK constraint, since `-1` never matches a real row). `parent_id` being a real menu id means the item renders inside that parent's dropdown. `$maxDepth = 2` on the page caps nesting at one dropdown level (top-level items + their direct children) — matches how the header/footer nav actually renders, not an arbitrary limit.
 
 Deleting a parent cascades to its children (handled by the package's model trait, not application code).
 
+**contact_info** *(model `ContactInfo`, table `contact_info` — explicitly set via `$table`, not the Eloquent-guessed `contact_infos`, and deliberately not named `contacts` to avoid confusion with `contact_messages`, the unrelated contact-form-submissions table)* — `name (label, e.g. "Phone"), content (the value, e.g. "578-393-4937"), icon (plain text, an inline SVG path string like "M7.5 0A5.5...", not JSON — unlike every other icon/image column in this schema, because that's what `ContactPage.vue` actually hands the `<path d>` attribute, not an uploaded file), key (unique — lookup key, e.g. "phone"/"email"/"address"/"working_hours"), status, sort_order`. A directory table like `delivery_services`/`payments`. `ContactInfoSeeder` seeds the 4 rows straight from `ContactPage.vue`'s `contact_info` array — the `href` (`mailto:`/`tel:`) shown there isn't a column, the frontend derives it from `key` (`email`/`phone`) instead of storing it.
+
+**faqs** *(model `Faq`)* — `title, content (text — answers run to a paragraph, same as `products.description`), type (plain string, not an enum — which page/section it belongs to, e.g. "contact" for `ContactPage.vue`'s FAQ block; add new type values freely as more pages get FAQs), status, sort_order`. `FaqSeeder` seeds the 6 `type=contact` rows straight from `ContactPage.vue`'s `faq` array (`question`/`answer` → `title`/`content`).
+
 ## Seed data
 
-`database/seeders/` has one seeder per table group (`ProductsCategorySeeder`, `ProductsAuthorSeeder`, `ProductSeeder`, `NewsCategorySeeder`, `NewsPostSeeder`, `DeliveryServiceSeeder`, `DeliveryBranchSeeder`, `PaymentSeeder`), all wired into `DatabaseSeeder`. Every value is taken from the frontend's hardcoded mock data (`ProductList.vue`, `AuthorList.vue`, `NewsList.vue`/`NewsPage.vue`, `DeliveryStep.vue`, `PaymentStep.vue`) rather than invented — the two exceptions are `product_stocks.quantity` (frontend has no stock numbers at all, so every seeded product gets a flat placeholder of 50) and `delivery_branches.hash` (synthesized as `md5("{city}|{branch}")` since there's no real carrier API yet).
+`database/seeders/` has one seeder per table group (`ProductsCategorySeeder`, `ProductsAuthorSeeder`, `ProductSeeder`, `NewsCategorySeeder`, `NewsPostSeeder`, `DeliveryServiceSeeder`, `DeliveryBranchSeeder`, `PaymentSeeder`, `MenuSeeder`, `ContactInfoSeeder`, `FaqSeeder`), all wired into `DatabaseSeeder`. Every value is taken from the frontend's hardcoded mock data (`ProductList.vue`, `AuthorList.vue`, `NewsList.vue`/`NewsPage.vue`, `DeliveryStep.vue`, `PaymentStep.vue`, `AppHeader.vue`, `ContactPage.vue`) rather than invented — the exceptions are `product_stocks.quantity` (frontend has no stock numbers at all, so every seeded product gets a flat placeholder of 50), `delivery_branches.hash` (synthesized as `md5("{city}|{branch}")` since there's no real carrier API yet), and `products_categories.image` (the frontend never had a per-category promo image — the mega-menu always showed one static image regardless of category — so `ProductsCategorySeeder` uses one distinct royalty-free photo per category, downloaded from Picsum Photos and stored at `products_categories/promo-{slug}.jpg`, loosely matched by subject — e.g. cutting board + vegetables for Cooking, a pier at sunset for Adventure. Not licensed/curated for production use, just enough visual variety for local dev — swap in real per-category photography before shipping).
 
 `ProductList.vue`'s mock data references two authors (Theodore Langley, Autumn Journey's Samuel Wright) that `AuthorList.vue` never gives a bio/avatar color to. Rather than seed authors with no real data, `ProductsAuthorSeeder` only has the 6 authors `AuthorList.vue` actually describes, and `ProductSeeder` drops the 2 products that only those missing authors wrote (Anxiety Unmasked, Autumn Journey) — 7 products, 6 authors seeded, not 9/8.
 
@@ -141,6 +148,27 @@ Infra wired up (no login/register endpoints yet):
 
 Ported from the same source project as the reviews structure: `App\Traits\RespondTrait` (used by the base `Controller`), giving every controller `respondWithJson($content, $status = 200)` → `{data, status}`, `respondWithError($message, $code = 400)` → `{status, errors}`, and `paginationMeta($paginated)` for a compact pagination envelope (`current_page, last_page, total, prev_page_url, next_page_url` — the latter two are just `'prev'`/`'next'`/`null` flags, not real URLs).
 
+**Form Request validation failures also match this envelope** — `bootstrap/app.php` renders `ValidationException` on `api/*` routes as `{status: 422, errors: $e->errors()}` (a `{field: [messages]}` map) instead of Laravel's default `{message, errors}` shape, so the frontend's error handling doesn't need a special case for validation vs. any other `respondWithError()` failure.
+
+**`GET /api/layout`** *(`LayoutController` → `App\Services\LayoutService`, first real endpoint, fetched once on app load by the frontend's `useLayoutStore().fetch_layout()`)* — `{categories, menu, contacts}`:
+- `categories` — delegated to `App\Services\ProductService::getCategories()` (moved out of `LayoutService`, same "other pages will need this too" reasoning as `bestsellers`/`best_rated`/`blog`) — active `products_categories`, `icon`/`image` are both raw relative storage paths (e.g. `"products_categories/category-icon-1.svg"`, not a full URL — the frontend's `to_storage_url()` helper in `stores/layout.ts` prepends `VITE_APP_URL`/`storage/`), `count` is `products()->count()`, not a stored column. `image` drives `AppHeader.vue`'s mega-menu promo panel — it swaps to the hovered category's `image` (falls back to the first category when nothing's hovered).
+- `menu` — `location=header` items only, root items (`parent_id = -1`) with one level of `children` nested inline (matches `MenuTree`'s `$maxDepth = 2`). Each item is `{id, name, type, route, params, children}` — a `route` item's `route` is a Vue Router name, resolved by the frontend as `{ name: route, params }`, not a path.
+- `contacts` — active `contact_info`, ordered by `sort_order`. `icon` is the raw inline SVG path string (see § Navigation) — the frontend feeds it straight into a `<path d>`, no URL resolution needed (unlike `categories.icon`).
+
+**`POST /api/newsletter`** *(`NewsletterController` → `App\Services\NewsletterService`, validated by `NewsletterSubscribeRequest`)* — body `{email}`, creates a `newsletter_subscribers` row with `status = 1`. `email` must be unique (case handled by the DB's default collation, not application code) — a duplicate returns `422 {status: 422, errors: {email: ["This email is already subscribed."]}}`, which `components/ui/shop/NewsletterForm.vue` surfaces via `vue-toastification` (see CLAUDE.md § Frontend for the toast convention). No unsubscribe/resubscribe flow yet — a previously-unsubscribed email (`status = 0`) still collides with the unique check rather than being reactivated.
+
+**`GET /api/home`** *(`HomeController` → `App\Services\HomeService`, fetched once by the Home page)* — `{bestsellers, best_author, best_rated, blog}`:
+- `bestsellers`/`best_rated`/`best_author` are delegated to `App\Services\ProductService` (`getBestsellers(int $limit = 8)`, `getBestRated(int $limit = 9)`, `getBestAuthor()`), not built inline in `HomeService` — these are generic product-listing queries, not Home-page-specific, so any future page needing "top N by rating"/"bestsellers"/"best author" reuses this same service rather than re-deriving the query. `bestsellers` is `ORDER BY bestseller DESC, rating_avg DESC LIMIT 8`. `bestseller` is deliberately left as the existing `0`/`1` flag (not converted to a weighted score) — the demo catalog only has 7 products total and 2 flagged, so a `LIMIT 8` with no `WHERE` naturally returns everything, bestsellers first. `price` comes from `Product::activeStock`, `image` from the `Product::primaryImage` relation (`hasOne(ProductImage::class)->orderBy('sort_order')` — a `hasOne`, not a `hasMany` capped with `->limit(1)` in the eager-load closure, which would silently apply the limit to the *whole* batched query across every loaded product instead of one-per-product; `hasOne` doesn't have that bug since Laravel groups by parent key during hydration instead of at the SQL level). `best_author` is the `products_authors` row whose products have the highest `SUM(bestseller)` (tie-broken by `AVG(rating_avg)`), grouped straight off `products.author_id`. `photo` is `null` for every seeded author (see § Seed data) — the frontend needs a fallback image/avatar for this, there's no real photo data yet. `best_rated` is the same shape as `bestsellers`, `ORDER BY rating_avg DESC LIMIT 9`.
+- `blog` — delegated to `App\Services\BlogService::getLatestPosts(int $limit = 7)`, same reasoning as `ProductService` — active `news_posts`, `ORDER BY published_at DESC`, for reuse by a future full News/Blog listing page.
+
+## Caching
+
+`LayoutService::getLayout()` and `HomeService::getHome()` are wrapped in `Cache::tags([...])->remember($key, $ttl, fn () => [...])` (Redis, `CACHE_STORE=redis` / `predis` client, both already set in `.env`) — pattern and TTLs modeled on the user's `srelon/demo-news` project's `CacheService`. `App\Services\CacheService` holds the TTL constants (`TTL_LAYOUT = 900s`, `TTL_HOME = 600s`) and tag constants (`TAG_LAYOUT`, `TAG_HOME`), plus one `flushOnXWrite()` static method per write source.
+
+**Cache invalidation is wired via each model's `booted()` static hooks** (`static::saved()` / `static::deleted()` calling the matching `CacheService::flushOnXWrite()`), not manual calls from a controller/service — this project's admin writes go through Filament's own generated CRUD (no custom `AdminService` layer intercepting every save like the reference project has), so a model-level hook is the one place guaranteed to fire regardless of whether the write came from Filament, Tinker, or a future API endpoint. Wired on: `Menu`, `ContactInfo` (→ `TAG_LAYOUT`), `ProductsCategory` (→ both tags, since a category rename affects both the layout's category list and any product card showing that category name), `Product`, `ProductStock`, `ProductImage`, `ProductsAuthor` (→ `TAG_HOME`), `NewsPost` (→ `TAG_HOME`).
+
+**Only cache plain arrays, never raw `Collection`/Eloquent model objects** — every cached closure calls `->toArray()` on any `Collection` before returning it (see `LayoutService::getLayout()` / `HomeService::getHome()`, and `formatMenuItem()`'s nested `children` which needs its own `->all()` since `Collection::toArray()` does not recurse into a plain array's own values). This isn't just style: this project's `config/cache.php` has Laravel 13's newer `'serializable_classes' => false` default, which makes Redis's `unserialize()` refuse to reconstruct **any** object read back from the cache — a cached `Collection` silently comes back as `__PHP_Incomplete_Class` on every cache-hit request (first request after a flush works fine since it never round-trips through serialization; every request after that is broken) while cached plain arrays/scalars are unaffected. Fix is to never serialize objects into the cache in the first place, not to loosen `serializable_classes` — that setting is a genuine security control against cache-poisoning object injection, and weakening it project-wide to work around one caching call would be the wrong trade.
+
 ## Planned business logic (not implemented yet)
 
 These are specified precisely so the eventual implementation matches what was agreed, not a re-guess:
@@ -161,7 +189,9 @@ Status `4` (cancelled) is excluded — a cancelled order item releases its reser
 ## Not implemented yet
 
 - Filament admin resources for the shop domain (following the `BaseResource`/`BaseEditRecord` pattern) — the only Filament admin UI built so far is the menu editor (`MenuTree`, see § Navigation), which uses a different pattern since it's a third-party tree page, not a `Resource`
-- API controllers for the frontend (including auth login/register/logout endpoints)
+- Auth endpoints (login/register/logout) and the rest of the frontend API controllers — `layout` (`GET /api/layout`), `newsletter` (`POST /api/newsletter`), and `home` (`GET /api/home`), see § API response format, are the only ones built so far
+- Filament admin resources for `contact_info` and `faqs`
+- `faqs` isn't in the `layout` response — nothing consumes it yet, it'll get its own endpoint (or join `layout`) once a page needs it
 - Review likes/reports/notifications handlers (structure is ready, no logic yet)
 - Real card payment integration (`orders.txid`/`paid_amount` are reserved for it)
 - Importing delivery branches from the carrier API (`delivery_branches`)

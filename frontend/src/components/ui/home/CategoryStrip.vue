@@ -11,9 +11,9 @@
                 >
                     <CategoryItem
                         v-for="cat in categories"
-                        :key="cat.name"
+                        :key="cat.id"
                         :name="cat.name"
-                        :icon="cat.icon"
+                        :icon="to_storage_url(cat.icon)"
                         :count="cat.count"
                         :style="{ width: item_width }"
                     />
@@ -26,77 +26,28 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import CategoryItem from '@/components/ui/home/CategoryItem.vue'
+import { useLayoutStore, to_storage_url } from '@/stores/layout'
 
 const VISIBLE = 8
 
-const categories = [
-    {
-        name: 'Art & Design',
-        icon: '/images/category-icon-1.svg',
-        count: 5,
-    },
-    {
-        name: 'Self-help',
-        icon: '/images/category-icon-6.svg',
-        count: 4,
-    },
-    {
-        name: 'Science',
-        icon: '/images/category-icon-3.svg',
-        count: 4,
-    },
-    {
-        name: 'Romance',
-        icon: '/images/category-icon-9.svg',
-        count: 4,
-    },
-    {
-        name: 'Novels',
-        icon: '/images/category-icon-4.svg',
-        count: 3,
-    },
-    {
-        name: 'History',
-        icon: '/images/category-icon-2.svg',
-        count: 5,
-    },
-    {
-        name: 'Fantasy',
-        icon: '/images/category-icon-8.svg',
-        count: 5,
-    },
-    {
-        name: 'Cooking',
-        icon: '/images/category-icon-5.svg',
-        count: 5,
-    },
-    {
-        name: 'Business',
-        icon: '/images/category-icon-10.svg',
-        count: 3,
-    },
-    {
-        name: 'Adventure',
-        icon: '/images/category-icon-7.svg',
-        count: 3,
-    },
-]
+const layout_store = useLayoutStore()
+const categories = computed(() => layout_store.categories)
 
-const total = categories.length
-const max_index = total - VISIBLE
+const total = computed(() => categories.value.length)
+const max_index = computed(() => Math.max(0, total.value - VISIBLE))
 
 const current = ref(0)
 const animated = ref(true)
 
-const offset = computed(() => -(current.value * 100) / total)
+const offset = computed(() => total.value ? -(current.value * 100) / total.value : 0)
 
-const track_width = `${(total / VISIBLE) * 100}%`
-const item_width = `${100 / total}%`
+const track_width = computed(() => `${(total.value / VISIBLE) * 100}%`)
+const item_width = computed(() => `${100 / total.value}%`)
 
 let timer: ReturnType<typeof setInterval>
 
 function advance() {
-    if (current.value >= max_index) {
+    if (current.value >= max_index.value) {
         animated.value = false
         current.value = 0
         nextTick(() => {

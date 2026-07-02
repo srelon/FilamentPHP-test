@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CacheService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -36,5 +37,11 @@ class ProductsCategory extends Model
     public function seo(): MorphOne
     {
         return $this->morphOne(SeoMeta::class, 'seo', 'type', 'record_id');
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => CacheService::flushOnCategoryWrite());
+        static::deleted(fn () => CacheService::flushOnCategoryWrite());
     }
 }
