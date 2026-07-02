@@ -8,11 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('product_reviews', function (Blueprint $table) {
+        Schema::create('reviews', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->string('type');
+            $table->unsignedBigInteger('record_id');
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('parent_id')->nullable()->constrained('product_reviews')->cascadeOnDelete();
+            $table->foreignId('parent_id')->nullable()->constrained('reviews')->cascadeOnDelete();
             $table->unsignedBigInteger('replied_to_comment_id')->nullable();
             $table->tinyInteger('rating')->unsigned()->nullable();
             $table->text('body');
@@ -21,13 +22,13 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index(['product_id', 'parent_id']);
+            $table->index(['type', 'record_id', 'parent_id']);
             $table->index(['status', 'created_at', 'deleted_at']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('product_reviews');
+        Schema::dropIfExists('reviews');
     }
 };

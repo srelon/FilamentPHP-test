@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('type');
             $table->json('data')->nullable();
             $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('review_id')->nullable()->constrained('product_reviews')->nullOnDelete();
+            $table->foreignId('review_id')->nullable()->constrained('reviews')->nullOnDelete();
             $table->unsignedBigInteger('parent_id')->nullable();
             $table->timestamp('read_at')->nullable();
             $table->timestamps();

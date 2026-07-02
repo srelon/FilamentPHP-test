@@ -6,19 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ProductReviewReport extends Model
+class ReviewLike extends Model
 {
     use SoftDeletes;
 
     protected $fillable = [
         'review_id',
         'user_id',
-        'reason',
+        'opp_type',
     ];
 
     public function review(): BelongsTo
     {
-        return $this->belongsTo(ProductReview::class, 'review_id');
+        return $this->belongsTo(Review::class, 'review_id');
     }
 
     public function user(): BelongsTo

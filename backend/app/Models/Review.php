@@ -5,14 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ProductReview extends Model
+class Review extends Model
 {
     use SoftDeletes;
 
     protected $fillable = [
-        'product_id',
+        'type',
+        'record_id',
         'user_id',
         'parent_id',
         'replied_to_comment_id',
@@ -22,9 +24,9 @@ class ProductReview extends Model
         'deleted_by',
     ];
 
-    public function product(): BelongsTo
+    public function reviewable(): MorphTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->morphTo('reviewable', 'type', 'record_id');
     }
 
     public function user(): BelongsTo
@@ -34,21 +36,21 @@ class ProductReview extends Model
 
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(ProductReview::class, 'parent_id');
+        return $this->belongsTo(Review::class, 'parent_id');
     }
 
     public function replies(): HasMany
     {
-        return $this->hasMany(ProductReview::class, 'parent_id');
+        return $this->hasMany(Review::class, 'parent_id');
     }
 
     public function likes(): HasMany
     {
-        return $this->hasMany(ProductReviewLike::class, 'review_id');
+        return $this->hasMany(ReviewLike::class, 'review_id');
     }
 
     public function reports(): HasMany
     {
-        return $this->hasMany(ProductReviewReport::class, 'review_id');
+        return $this->hasMany(ReviewReport::class, 'review_id');
     }
 }
