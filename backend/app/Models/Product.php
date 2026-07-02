@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -65,9 +66,9 @@ class Product extends Model
         return $this->morphOne(SeoMeta::class, 'seo', 'type', 'record_id');
     }
 
-    public function reviews(): HasMany
+    public function reviews(): MorphMany
     {
-        return $this->hasMany(ProductReview::class);
+        return $this->morphMany(Review::class, 'reviewable', 'type', 'record_id');
     }
 
     public function cartItems(): HasMany

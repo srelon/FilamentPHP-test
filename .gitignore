@@ -12,6 +12,9 @@ Thumbs.db
 .zed/
 .nova/
 
+# Claude Code
+.claude/
+
 # Docker
 .docker/
 tmp/

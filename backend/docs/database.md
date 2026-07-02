@@ -15,9 +15,9 @@ Project convention: **`4` is reserved for cancel/delete-type states** across enu
 | `products.status`               | `0` created / `1` active (shown in search and filters) / `2` archived (reachable only via direct link, not searchable) / `3` reserved for future use / `4` deleted                                                |
 | `products.bestseller`           | `0`/`1` — a flat flag, not a lifecycle status                                                                                                                                                                   |
 | `product_stocks.status`         | `0` created / `1` active / `2` fulfilled / `3` queued / `4` cancelled                                                                                                                                             |
-| `product_reviews.status`        | inherited from the source project (comments), `default 1`; no exact value list survived there either (before `recreate_comments_table` it was `pending/approved/rejected`) — confirm before building moderation |
-| `product_reviews.deleted_by`    | `null` = deleted normally (by user/admin) / `1` = deleted by a moderator (shows a placeholder in its place)                                                                                                       |
-| `product_review_likes.opp_type` | `0` cancelled / `1` dislike / `2` like                                                                                                                                                                            |
+| `reviews.status`                | inherited from the source project (comments), `default 1`; no exact value list survived there either (before `recreate_comments_table` it was `pending/approved/rejected`) — confirm before building moderation |
+| `reviews.deleted_by`            | `null` = deleted normally (by user/admin) / `1` = deleted by a moderator (shows a placeholder in its place)                                                                                                       |
+| `review_likes.opp_type`         | `0` cancelled / `1` dislike / `2` like                                                                                                                                                                            |
 | `carts.status`                  | `0` created / `1` completed (after checkout)                                                                                                                                                                      |
 | `cart_items.status`             | `0` created / `1` ordered / `4` deleted                                                                                                                                                                           |
 | `products_favorites.status`     | `0` cancelled (clicking again toggles, doesn't delete the row) / `1` active                                                                                                                                       |
@@ -49,13 +49,15 @@ A product can have several rows at once: one `active` (currently on sale), other
 
 ## Reviews and notifications
 
-Ported almost 1:1 from another existing project (its `comments`/`comment_likes`/`comment_reports`/`user_notifications` tables), with `article_id → product_id`, `comment_id → review_id`. The moderation/likes/notifications logic for that structure is already built and working there, so it wasn't redesigned here.
+Ported almost 1:1 from another existing project (its `comments`/`comment_likes`/`comment_reports`/`user_notifications` tables), with `comment_id → review_id`. The moderation/likes/notifications logic for that structure is already built and working there, so it wasn't redesigned here.
 
-**product_reviews** *(= `comments`)* — `product_id → products, user_id (nullable, nullOnDelete — but a row can only be created while authenticated, there is no guest path), parent_id (self, replies), replied_to_comment_id, rating (nullable, only on the root review — the one field that wasn't in the original), body, status, deleted_by`.
+Unlike the source project, `reviews` is **not** product-specific — it's polymorphic (`type`/`record_id`, aliased through the same morph map as `seo_meta`) so it can be reused for any content, not just `products`. `Product::reviews()` and `NewsPost::reviews()` are both `morphMany(Review::class, 'reviewable', 'type', 'record_id')`, sharing one table instead of duplicating the whole structure per content type.
 
-**product_review_likes** *(= `comment_likes`)* — `review_id, user_id, opp_type`, unique(`review_id, user_id`).
+**reviews** *(= `comments`, model `Review`)* — `type, record_id (the reviewed record — e.g. type "products" + a product id), user_id (nullable, nullOnDelete — but a row can only be created while authenticated, there is no guest path), parent_id (self, replies), replied_to_comment_id, rating (nullable, only on the root review — the one field that wasn't in the original), body, status, deleted_by`.
 
-**product_review_reports** *(= `comment_reports`)* — `review_id, user_id, reason`, unique(`review_id, user_id`).
+**review_likes** *(= `comment_likes`, model `ReviewLike`)* — `review_id, user_id, opp_type`, unique(`review_id, user_id`).
+
+**review_reports** *(= `comment_reports`, model `ReviewReport`)* — `review_id, user_id, reason`, unique(`review_id, user_id`).
 
 **user_notifications** *(= `user_notifications`, logic not implemented yet, structure only)* — `user_id, from_user_id (nullable, no FK), type (system/reply/like/dislike), data (json), product_id (nullable), review_id (nullable), parent_id (nullable, root review, no FK), read_at`.
 
