@@ -1,6 +1,6 @@
-# dashboard.loco
+# E-commerce FilamentPHP
 
-Full-stack CRM with real-time features. Laravel + FilamentPHP admin + Vue 3 public site.
+Book store. Laravel + FilamentPHP admin, Vue 3 public site, Node.js WebSocket server for real-time stock/notification updates.
 
 ## Stack
 
@@ -34,29 +34,21 @@ docker exec -it filament_app sh -c 'cd /var/www/backend && php artisan db:seed'
 make up    # Start core services
 make down  # Stop everything
 make site  # Start Vue dev server → http://127.0.0.1:5173
+make bash  # Enter the backend container shell
 ```
 
 ## Key URLs
 
-| Service         | URL                        |
-|-----------------|----------------------------|
-| API             | http://127.0.0.1:8000      |
-| Filament Admin  | http://127.0.0.1:8000/admin |
-| Site            | http://127.0.0.1:8880      |
-| phpMyAdmin      | http://127.0.0.1:8080      |
-| WebSocket       | ws://127.0.0.1:6001        |
+| Service         | URL                          |
+|-----------------|-------------------------------|
+| API             | http://127.0.0.1:8000        |
+| Filament Admin  | http://127.0.0.1:8000/admin  |
+| Site            | http://127.0.0.1:8880        |
+| phpMyAdmin      | http://127.0.0.1:8080        |
+| WebSocket       | ws://127.0.0.1:6001          |
 
 **phpMyAdmin credentials:** `root` / `root`
 
 ## Real-time Architecture
 
-PHP publishes → Redis subscribes → Node.js broadcasts → Browser
-
-**Channels:**
-- `tags.updated`           — all connected clients
-- `article.{id}`           — article viewers
-- `notification.{user_id}` — specific authenticated user
-
-```bash
-# Enter container shell
-docker exec -it filament_app bash
+PHP publishes → Redis subscribes → Node.js broadcasts → Browser. Infrastructure is wired up (`websocket/redis.js`, `websocket/server.js`); no channels are implemented yet — see `backend/docs/database.md` § "Planned business logic" for the spec (stock availability broadcast per product, user notifications).
