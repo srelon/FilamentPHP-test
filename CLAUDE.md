@@ -30,7 +30,7 @@ make site
 
 **Container names:** `filament_app`, `filament_nginx`, `filament_db`, `filament_redis`, `filament_scheduler`, `filament_websocket`
 
-**Ports:** все на одном порту `8000` (API `/api`, Admin `/admin`, сайт `/`), Vue dev `5173`, phpMyAdmin `8080`, WebSocket `6001`, MySQL `8101`
+**Ports:** все на одном порту `8880` (`SITE_PORT` в `.env`) — API `/api`, Admin `/admin`, сайт `/`; Vue dev-сервер (`make site`) — `5173`, phpMyAdmin `8080`, WebSocket `6001`, MySQL `8101`
 
 ## Running commands in the backend container
 
@@ -87,6 +87,20 @@ app/Filament/Resources/
 - `canCreate/canEdit` → requires `{key}.edit`
 - Form `->disabled(!static::hasAccess('edit'))` makes fields read-only for view-only users
 - Never use `abort(403)` inside `beforeSave()` — use `Notification::make()->danger()->send()` + `$this->halt()` to show a toast instead of an error modal
+- New access keys (any new `$accessKey`) must be added to `database/seeders/AccessesSeeder.php` in the same change, or the permission can never be assigned to a role
+- Standalone `Filament\Pages\Page` subclasses (not a `Resource`, e.g. a page from a third-party package) can't extend `BaseResource` — replicate its `hasAccess(string $type)` helper locally instead, and gate visibility via `canAccess()` (the `Page`-level equivalent of `canViewAny`)
+
+### Tree / nested UI (menus, and any future drag-and-drop hierarchy)
+
+Use `solution-forest/filament-tree` — don't hand-roll drag-and-drop nesting. Column names are remapped in `config/filament-tree.php` (`order → sort`, `title → name`; `parent` stays `parent_id`) to match this project's naming conventions.
+
+**`parent_id` must be `integer default(-1)`, not a nullable FK** — the package uses `-1` as its root sentinel (`ModelTree::defaultParentKey()`), and `-1` never has to match a real row so there's no FK constraint on the column. This is a deliberate deviation from the nullable-self-FK pattern used elsewhere; don't nullable-FK-ify it to match convention, it breaks the package's `isRoot()`/`scopeIsRoot()`/cascading-delete logic.
+
+Model: `use SolutionForest\FilamentTree\Concern\ModelTree;`. Page: generate with `php artisan make:filament-tree-page {Name} --model={Model}`, then wire RBAC (see above) and `getFormSchema()` manually — the generated stub ships empty. See `Menu` / `App\Filament\Pages\MenuTree` for the reference implementation.
+
+**Custom panel-wide CSS** (e.g. the drag-and-drop nesting highlight on the tree page) goes in a small Blade partial under `resources/views/filament/`, wired via `->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => view('filament.xxx'))` in `AdminPanelProvider` — don't edit anything under `vendor/`, it gets wiped on `composer update`/`vendor:publish --force`. See `resources/views/filament/menu-tree-styles.blade.php` (targets the tree package's `.dd-*` classes from `solution-forest/filament-tree`, which ships dbushell's Nestable JS — nesting happens by dragging an item right past a horizontal threshold, not by hovering over a target).
+
+**Dynamic route params on the menu form** — when a field's options depend on another field picked in the same form (here: which model to search depends on the selected `route`), use a `Select::make('json_column.key')->searchable()->getSearchResultsUsing(fn (string $search, $get) => ...)->getOptionLabelUsing(fn ($value, $get) => ...)`, with the driving field marked `->live()`. This queries through the panel's existing Livewire round-trip (capped with `->limit(10)`, filtered by `$search`) — don't build a bespoke API endpoint + JS autocomplete for internal-admin-only lookups like this, `searchable()` already does it.
 
 ## Shop domain (backend database)
 
@@ -132,6 +146,17 @@ class ProductRequest extends FormRequest
 ```
 
 **No business logic in controllers.** A controller method only resolves a Request, calls a Service (`app/Services/`) or another dedicated layer (e.g. an Action), and returns the response — nothing else. All business logic belongs in the service layer.
+
+**Group routes by resource, don't declare flat separate `Route::` calls.** One `Route::prefix('resource')->controller(Controller::class)->group(function () { ... })` block per resource area, e.g.:
+
+```php
+Route::prefix('news/{category}')->controller(NewsController::class)->group(function () {
+    Route::get('/', 'category');
+    Route::get('/{subcategory}', 'subcategoryNews');
+    Route::get('/{subcategory}/articles', 'subcategoryArticles');
+    Route::get('/{subcategory}/{slug}', 'article');
+});
+```
 
 **Response shape comes from `App\Traits\RespondTrait`** (already `use`d in the base `Controller`) — never build the JSON envelope by hand in a controller:
 - `$this->respondWithJson($content, $status = 200)` → `{data, status}`

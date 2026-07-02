@@ -97,6 +97,22 @@ Guest carts are **not stored in the DB** — client-side only (Pinia store + loc
 **contact_messages** — `first_name, last_name, email, subject, message, status`.
 **newsletter_subscribers** — `email (unique), status`.
 
+## Navigation
+
+**menus** *(model `Menu`, no `status`, no `softDeletes` — unlike the rest of this doc's tables)* — `name, route (nullable), parent_id, type (link = external URL / route = a Vue Router route name from frontend/src/routes/router.ts, e.g. "products", "about" — not a path, and not a Laravel route), params (json, nullable — route params for dynamic segments, e.g. {"slug": "..."} for the "product"/"post" routes, only relevant when type=route), sort, location (header/footer)`.
+
+The frontend resolves a `type=route` item as `:to="{ name: menu.route, params: menu.params }"` (vue-router's named-route object form), not as a raw path string.
+
+In the admin (`MenuTree::routeSlugModels()`), the `product`/`post` routes get a searchable "Target" select instead of a free-text params box — it queries `Product`/`NewsPost` by `title` (last 10 by id, filtered as you type) and writes the picked record's `slug` into `params.slug`, so an editor never hand-types a slug that could drift from the real record.
+
+`MenuSeeder` seeds the 6 top-level `header` items straight from `AppHeader.vue`'s `nav_links` (Home/Products/Authors/About Us/News/Contact Us) — the "Categories" mega-menu in the same header is driven by `products_categories`, not `menus`, so it isn't duplicated here. `footer` isn't seeded yet — its layout isn't finalized in the frontend.
+
+Powers a WordPress-style drag-and-drop menu editor at `/admin/menu-tree` (`App\Filament\Pages\MenuTree`, gated by the `menus` access key like every other resource), built on `solution-forest/filament-tree` rather than a hand-rolled tree — see `config/filament-tree.php` for the column-name mapping (`order → sort`, `title → name`, `parent → parent_id`).
+
+`parent_id` is **not** a nullable self-referencing FK like elsewhere in this schema — the package requires `-1` as the sentinel for a root/top-level item (`integer default(-1)`, no FK constraint, since `-1` never matches a real row). `parent_id` being a real menu id means the item renders inside that parent's dropdown. `$maxDepth = 2` on the page caps nesting at one dropdown level (top-level items + their direct children) — matches how the header/footer nav actually renders, not an arbitrary limit.
+
+Deleting a parent cascades to its children (handled by the package's model trait, not application code).
+
 ## Seed data
 
 `database/seeders/` has one seeder per table group (`ProductsCategorySeeder`, `ProductsAuthorSeeder`, `ProductSeeder`, `NewsCategorySeeder`, `NewsPostSeeder`, `DeliveryServiceSeeder`, `DeliveryBranchSeeder`, `PaymentSeeder`), all wired into `DatabaseSeeder`. Every value is taken from the frontend's hardcoded mock data (`ProductList.vue`, `AuthorList.vue`, `NewsList.vue`/`NewsPage.vue`, `DeliveryStep.vue`, `PaymentStep.vue`) rather than invented — the two exceptions are `product_stocks.quantity` (frontend has no stock numbers at all, so every seeded product gets a flat placeholder of 50) and `delivery_branches.hash` (synthesized as `md5("{city}|{branch}")` since there's no real carrier API yet).
@@ -144,7 +160,7 @@ Status `4` (cancelled) is excluded — a cancelled order item releases its reser
 
 ## Not implemented yet
 
-- Filament admin resources (following the `BaseResource`/`BaseEditRecord` pattern)
+- Filament admin resources for the shop domain (following the `BaseResource`/`BaseEditRecord` pattern) — the only Filament admin UI built so far is the menu editor (`MenuTree`, see § Navigation), which uses a different pattern since it's a third-party tree page, not a `Resource`
 - API controllers for the frontend (including auth login/register/logout endpoints)
 - Review likes/reports/notifications handlers (structure is ready, no logic yet)
 - Real card payment integration (`orders.txid`/`paid_amount` are reserved for it)

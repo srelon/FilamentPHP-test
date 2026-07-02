@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             DeliveryServiceSeeder::class,
             DeliveryBranchSeeder::class,
             PaymentSeeder::class,
+            MenuSeeder::class,
         ]);
 
         // User::factory(10)->create();
