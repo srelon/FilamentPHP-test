@@ -17,6 +17,9 @@ up:
 down:
 	$(DOCKER_COMPOSE) $(PROFILES) down --remove-orphans
 
+bash:
+	docker exec -it filament_app bash
+
 logs:
 	$(DOCKER_COMPOSE) logs -f
 

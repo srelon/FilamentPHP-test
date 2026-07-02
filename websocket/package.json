@@ -1,5 +1,5 @@
 {
-  "name": "dashboard-websocket",
+  "name": "ecommerce-filament-websocket",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
