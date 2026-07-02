@@ -28,15 +28,27 @@ class AdminSeeder extends Seeder
         DB::table('admin_role_access')->where('role_id', $superadmin_role->id)->delete();
         foreach ($all_accesses as $access) {
             DB::table('admin_role_access')->insert([
-                ['role_id' => $superadmin_role->id, 'access_id' => $access->id, 'type' => 1],
-                ['role_id' => $superadmin_role->id, 'access_id' => $access->id, 'type' => 2],
+                [
+                    'role_id' => $superadmin_role->id,
+                    'access_id' => $access->id,
+                    'type' => 1,
+                ],
+                [
+                    'role_id' => $superadmin_role->id,
+                    'access_id' => $access->id,
+                    'type' => 2,
+                ],
             ]);
         }
 
         DB::table('admin_role_access')->where('role_id', $admin_role->id)->delete();
         if ($users_access) {
             DB::table('admin_role_access')->insert([
-                ['role_id' => $admin_role->id, 'access_id' => $users_access->id, 'type' => 1],
+                [
+                    'role_id' => $admin_role->id,
+                    'access_id' => $users_access->id,
+                    'type' => 1,
+                ],
             ]);
         }
 

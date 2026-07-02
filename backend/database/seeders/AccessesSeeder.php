@@ -10,9 +10,22 @@ class AccessesSeeder extends Seeder
     public function run(): void
     {
         $accesses = [
-            ['key' => 'users', 'title' => 'Users'],
-            ['key' => 'admins', 'title' => 'Admins'],
-            ['key' => 'roles', 'title' => 'Roles'],
+            [
+                'key' => 'users',
+                'title' => 'Users',
+            ],
+            [
+                'key' => 'admins',
+                'title' => 'Admins',
+            ],
+            [
+                'key' => 'roles',
+                'title' => 'Roles',
+            ],
+            [
+                'key' => 'menus',
+                'title' => 'Menus',
+            ],
         ];
 
         foreach ($accesses as $access) {
